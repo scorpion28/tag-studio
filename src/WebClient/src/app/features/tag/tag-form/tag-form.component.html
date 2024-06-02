@@ -1,0 +1,31 @@
+<app-modal-wrapper (close)="onFormClose()">
+
+  <div>
+    <input type="text" [(ngModel)]="tagName" placeholder="New Tag"
+           class="text-alpha-81 text-4xl rounded-lg block w-full pb-5 dark:placeholder-neutral-700 font-bold outline-0">
+  </div>
+
+  <div role="table" class="text-sm text-alpha-46">
+    <div role="row" class="flex items-center py-2">
+      <div class="shrink-0 hover:bg-dark-gray-350 py-1 px-2 rounded-xs">
+        <label class="text-white opacity-60">Parent tags</label>
+      </div>
+      <div class=" flex flex-wrap grow-0 w-full p-1 hover:bg-neutral-700 rounded-xs px-2"
+           (click)="tagPickerVisible.set(true)">
+        @if (parentTags().length > 0) {
+          <app-tag-list [tags]="parentTags()" [wrap]="true" />
+        } @else {
+          <span class="px-1.5 py-0.5 rounded-sm text-gray-500">Empty</span>
+        }
+      </div>
+    </div>
+    @if (tagPickerVisible()) {
+      <app-tag-picker [selectedTags]="parentTags()"
+                      (tagAdded)="onParentTagAdded($event)"
+                      (tagRemoved)="onParentTagRemoved($event)"
+                      (close)="tagPickerVisible.set(false)"
+      />
+    }
+  </div>
+
+</app-modal-wrapper>

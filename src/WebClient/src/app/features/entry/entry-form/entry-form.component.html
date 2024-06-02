@@ -1,0 +1,37 @@
+<app-modal-wrapper (close)="onFormClose()">
+  <div>
+    <input type="text" [(ngModel)]="name" placeholder="New Entry"
+           class="text-alpha-81 text-4xl rounded-lg block w-full pb-5 placeholder-gray-500 font-bold opacity-80 outline-0">
+  </div>
+
+  <div role="table" class="text-sm text-alpha-46">
+    <div role="row" class="flex items-center py-2">
+      <div class="shrink-0 hover:bg-dark-gray-350 py-1 px-2 rounded-xs">
+        <label>Description</label>
+      </div>
+      <div class="grow-0 w-full p-1 hover:bg-dark-gray-350 rounded-xs px-2 cursor-pointer">
+        <input type="text" [(ngModel)]="description" placeholder="Empty"
+               class="inline rounded-lg w-full text-alpha-87  placeholder-gray-500 text-white-a-81 outline-0 ">
+      </div>
+    </div>
+    <div role="row" class="flex items-center py-2">
+      <div class="shrink-0 hover:bg-dark-gray-350 py-1 px-2 rounded-xs">
+        <label>Tags</label>
+      </div>
+      <div class="grow-0 w-full p-1 hover:bg-dark-gray-350 rounded-xs px-2 cursor-pointer"
+           (click)="tagPickerVisible.set(true)">
+        @if (tags().length > 0) {
+          <app-tag-list [tags]="tags()" [wrap]="true" />
+        } @else {
+          <span class="px-1.5 py-0.5 rounded-sm text-gray-500">Empty</span>
+        }
+      </div>
+    </div>
+    @if (tagPickerVisible()) {
+      <app-tag-picker [selectedTags]="tags()"
+                      (tagAdded)="addEntryTag($event)"
+                      (tagRemoved)="removeEntryTag($event)"
+                      (close)="tagPickerVisible.set(false)" />
+    }
+  </div>
+</app-modal-wrapper>

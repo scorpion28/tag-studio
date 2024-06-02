@@ -1,0 +1,50 @@
+﻿<top-bar [pageTitle]="'Tags'" />
+
+<div class="container w-full my-10">
+  <div class="flex justify-between items-center">
+    <h2 class="text-alpha-81">Manage Tags</h2>
+
+    <button type="button" (click)="selectedTagId$.next('new')"
+            class="text-alpha-81 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-3  py-2 text-center inline-flex items-center me-2 my-4 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+      <i class="fa-solid fa-plus mr-2 text-2xl mb-1"></i>
+      Add Tag
+    </button>
+  </div>
+  @if (this.queryParams()?.['selected']; as tagId) {
+    <app-tag-form [tagId]="tagId === 'new' ? '' : tagId" (close)="handleFormOutput($event)" />
+  }
+
+  <div class="rounded-2xl overflow-clip">
+    <table class="w-full text-sm text-left  text-gray-500">
+      <thead>
+      <tr>
+        <th class="pl-3 py-3">Name</th>
+        <th class="py-3">Parent tags</th>
+        <th class="py-3">Created</th>
+        <th class="py-3">Edited</th>
+        <th>Actions</th>
+      </tr>
+      </thead>
+      <tbody class="text-alpha-81">
+        @for (tag of this.tagService.tags(); track tag.id) {
+          <tr class="border-b border-b-dark-gray-650 hover:bg-dark-gray-700">
+            <td class="px-3 py-4 border-r border-r-dark-gray-650">{{ tag.name }}</td>
+            <td class="px-3 py-4 flex flex-row overflow-hidden max-w-3xs border-r border-r-dark-gray-650">
+              <app-tag-list [tags]="tag.parents" />
+            </td>
+            <td class="px-1 border-r border-r-dark-gray-650">{{ tag.created | date }}</td>
+            <td class="px-1 border-r border-r-dark-gray-650">{{ tag.lastModified | date }}</td>
+            <td>
+              <button (click)="selectedTagId$.next(tag.id)" class="text-blue-500 hover:underline pr-1">Edit</button>
+              <button (click)="tagService.remove$.next(tag.id)" class="text-blue-500 hover:underline">Remove</button>
+            </td>
+          </tr>
+        } @empty {
+          <tr class="w-full h-12 border-b border-b-dark-gray-400 border-gray-700">
+            <td colspan="5" class="text-center">There are no tags yet</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
