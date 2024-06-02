@@ -1,0 +1,25 @@
+<aside class="sidebar">
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo"
+         src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=500" alt=""/>
+  </div>
+
+  <nav class="sidebar-navigation">
+    <ul>
+      <li routerLinkActive="selected">
+        <a routerLink="/app/tags"><i class="fa-solid fa-user"></i>Tags</a>
+      </li>
+      <li routerLinkActive="selected">
+        <a routerLink="/app/entries"><i class="fa-solid fa-user"></i>Entries</a>
+      </li>
+      <li class="sidebar-user-profile">
+        <a style="display:inline-flex;">
+          <div class="icon-wrapper">
+            <img src="/user_placeholder.svg" alt="User image"/>
+          </div>
+          <span>{{ getUserName() }}</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+</aside>
