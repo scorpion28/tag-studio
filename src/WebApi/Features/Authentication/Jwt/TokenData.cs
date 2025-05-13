@@ -1,0 +1,9 @@
+﻿namespace TagStudio.WebApi.Features.Authentication;
+
+/// <summary>
+/// Represents JWT token and related data to be sent to user after login
+/// </summary>
+/// <param name="AccessToken">JWT access token</param>
+/// <param name="RefreshToken">JWT refresh token</param>
+/// <param name="ExpiresAtUtc">The expiration time of the access token as a Unix timestamp in milliseconds in UTC format</param>
+public record TokenData(string AccessToken, string RefreshToken, long ExpiresAtUtc);

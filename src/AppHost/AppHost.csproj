@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <Sdk Name="Aspire.AppHost.Sdk" Version="9.2.0"/>
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <UserSecretsId>0b88fe11-072c-4a90-b88f-c40167e779e2</UserSecretsId>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Aspire.Hosting.AppHost" IsAspireProjectResource="false"/>
+        <PackageReference Include="Aspire.Hosting.SqlServer"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\WebApi\WebApi.csproj"/>
+    </ItemGroup>
+
+</Project>
