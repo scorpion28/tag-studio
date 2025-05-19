@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+      <AssemblyName>TagStudio.WebApi.FunctionalTests    </AssemblyName>
+      <RootNamespace>TagStudio.WebApi.FunctionalTests</RootNamespace>
+      <Company>TagStudio.WebApi.FunctionalTests</Company>
+      <Product>TagStudio.WebApi.FunctionalTests</Product>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Bogus" />
+        <PackageReference Include="coverlet.collector"/>
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk"/>
+        <PackageReference Include="Respawn" />
+        <PackageReference Include="Shouldly" />
+        <PackageReference Include="Testcontainers.MsSql" />
+        <PackageReference Include="xunit"/>
+        <PackageReference Include="xunit.runner.visualstudio"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Using Include="Xunit"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\AppHost\AppHost.csproj"/>
+        <ProjectReference Include="..\..\src\WebApi\WebApi.csproj" />
+    </ItemGroup>
+
+</Project>

@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="Directory.Packages.props" />
+    <File Path="Directory.Build.props" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/AppHost/AppHost.csproj" />
+    <Project Path="src/ServiceDefaults/ServiceDefaults.csproj" />
+    <Project Path="src/WebApi/WebApi.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests\WebApi.FunctionalTests\WebApi.FunctionalTests.csproj" Type="Classic C#" />
+    <Project Path="tests\WebApi.Tests\WebApi.Tests.csproj" Type="Classic C#" />
+  </Folder>
+</Solution>
