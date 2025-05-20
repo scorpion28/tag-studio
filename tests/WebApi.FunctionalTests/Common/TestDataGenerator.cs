@@ -1,6 +1,6 @@
 ﻿using Bogus;
-using TagStudio.WebApi.Domain;
-using TagStudio.WebApi.Domain.Common;
+using TagStudio.Tags.Domain;
+using TagStudio.Tags.Domain.Common;
 
 namespace TagStudio.WebApi.FunctionalTests.Common;
 

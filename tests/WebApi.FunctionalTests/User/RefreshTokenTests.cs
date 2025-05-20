@@ -1,8 +1,10 @@
 ﻿using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc;
-using TagStudio.WebApi.Features.Authentication;
-using TagStudio.WebApi.Infrastructure.Identity;
+using Microsoft.Extensions.DependencyInjection;
+using TagStudio.Identity.Data;
+using TagStudio.Identity.Domain;
+using TagStudio.Identity.Features;
 
 namespace TagStudio.WebApi.FunctionalTests.User;
 
@@ -78,8 +80,18 @@ public class RefreshTokenTests(TagStudioFactory appFactory) : TestsBase(appFacto
         var refreshToken = Guid.NewGuid().ToString();
         var userToken = new UserRefreshToken(refreshToken, userId, expiresAt.Value);
 
-        await SeedDbAsync(userToken);
+        await SeedRefreshToken(userToken);
 
         return refreshToken;
+    }
+
+    private async Task SeedRefreshToken(UserRefreshToken token)
+    {
+        await using var scope = _appFactory.Services.CreateAsyncScope();
+        await using var db = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
+
+        await db.RefreshTokens.AddAsync(token);
+
+        await db.SaveChangesAsync();
     }
 }

@@ -1,13 +1,7 @@
 ﻿using FastEndpoints;
 using FastEndpoints.Swagger;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using TagStudio.WebApi.Common;
-using TagStudio.WebApi.Features.Authentication;
-using TagStudio.WebApi.Infrastructure.Data;
-using TagStudio.WebApi.Infrastructure.Data.Interceptors;
-using TagStudio.WebApi.Infrastructure.Identity;
+using TagStudio.WebApi.Common.Authentication;
 
 // ReSharper disable once CheckNamespace
 internal static class DependencyInjection
@@ -29,6 +23,10 @@ internal static class DependencyInjection
             });
         });
 
+        // Auth
+        services.AddAuthenticationServices(builder.Configuration);
+
+
         // Error handling
         services.AddProblemDetails();
         services.AddExceptionHandler<GlobalExceptionHandler>();
@@ -37,36 +35,6 @@ internal static class DependencyInjection
         services.AddEndpointsApiExplorer();
 
         return services;
-    }
-
-    public static IServiceCollection AddInfrastructureServices(this WebApplicationBuilder builder)
-    {
-        var services = builder.Services;
-        var config = builder.Configuration;
-
-        // Database
-        services.AddDatabaseServices(config);
-
-        // Identity 
-        services.AddIdentityCore<AppUser>()
-            .AddSignInManager<SignInManager<AppUser>>()
-            .AddEntityFrameworkStores<ApplicationDbContext>();
-
-        // Auth
-        services.AddAuthenticationServices(config);
-
-        return services;
-    }
-
-    private static void AddDatabaseServices(this IServiceCollection services, ConfigurationManager config)
-    {
-        services.AddDbContext<ApplicationDbContext>((sp, options) =>
-        {
-            options.UseSqlServer(config.GetConnectionString("database"));
-            options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
-        });
-        services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
-        services.AddScoped<ApplicationDbContextInitializer>();
     }
 
     private static void AddAuthenticationServices(this IServiceCollection services, ConfigurationManager config)

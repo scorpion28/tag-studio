@@ -2,7 +2,7 @@
 using Ardalis.GuardClauses;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using TagStudio.WebApi.Domain.Exceptions;
+using TagStudio.Tags.Domain.Exceptions;
 
 namespace TagStudio.WebApi.Common;
 

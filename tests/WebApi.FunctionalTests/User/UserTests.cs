@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc;
-using TagStudio.WebApi.Features.Users;
+using TagStudio.Identity.Features;
 
 namespace TagStudio.WebApi.FunctionalTests.User;
 

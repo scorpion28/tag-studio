@@ -9,9 +9,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Respawn;
-using TagStudio.WebApi.Features.Authentication;
-using TagStudio.WebApi.Infrastructure.Data;
-using TagStudio.WebApi.Infrastructure.Identity;
+using TagStudio.Identity.Data;
+using TagStudio.Identity.Domain;
+using TagStudio.Identity.Features;
+using TagStudio.Tags.Data;
 using Testcontainers.MsSql;
 
 namespace TagStudio.WebApi.FunctionalTests;
@@ -27,8 +28,11 @@ public class TagStudioFactory : WebApplicationFactory<Program>, IAsyncLifetime
     {
         builder.ConfigureTestServices(services =>
         {
-            services.RemoveAll<DbContextOptions<ApplicationDbContext>>();
-            services.AddDbContext<ApplicationDbContext>(options =>
+            services.AddDbContext<TagsDbContext>(options =>
+            {
+                options.UseSqlServer(_dbContainer.GetConnectionString());
+            });
+            services.AddDbContext<UsersDbContext>(options =>
             {
                 options.UseSqlServer(_dbContainer.GetConnectionString());
             });
@@ -41,7 +45,7 @@ public class TagStudioFactory : WebApplicationFactory<Program>, IAsyncLifetime
     {
         await _dbContainer.StartAsync();
 
-        await MigrateDatabaseAsync();
+        await MigrateDatabasesAsync();
 
         _respawner = await Respawner.CreateAsync(_dbContainer.GetConnectionString(), new RespawnerOptions
         {
@@ -85,7 +89,7 @@ public class TagStudioFactory : WebApplicationFactory<Program>, IAsyncLifetime
         using var scope = Services.CreateScope();
 
         // Generate tokens
-        var tokenService = scope.ServiceProvider.GetRequiredService<JwtTokenService>();
+        var tokenService = scope.ServiceProvider.GetRequiredService<ITokenService>();
         var token = tokenService.GenerateTokens(user).AccessToken;
 
         var client = CreateClient();
@@ -94,16 +98,23 @@ public class TagStudioFactory : WebApplicationFactory<Program>, IAsyncLifetime
         return client;
     }
 
-    private async Task MigrateDatabaseAsync()
+    private async Task MigrateDatabasesAsync()
     {
-        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+        var tagsDbContextOptions = new DbContextOptionsBuilder<TagsDbContext>()
             .UseSqlServer(_dbContainer.GetConnectionString())
             .ConfigureWarnings(warnings => warnings.Log(RelationalEventId.PendingModelChangesWarning))
             .Options;
+        var tagsContext = new TagsDbContext(tagsDbContextOptions);
+        
+        await tagsContext.Database.MigrateAsync();
 
-        var context = new ApplicationDbContext(options);
+        var usersDbContextOptions = new DbContextOptionsBuilder<UsersDbContext>()
+            .UseSqlServer(_dbContainer.GetConnectionString())
+            .ConfigureWarnings(warnings => warnings.Log(RelationalEventId.PendingModelChangesWarning))
+            .Options;
+        var usersContext = new UsersDbContext(usersDbContextOptions);
 
-        await context.Database.MigrateAsync();
+        await usersContext.Database.MigrateAsync();
     }
 
     public async Task ResetDbAsync()

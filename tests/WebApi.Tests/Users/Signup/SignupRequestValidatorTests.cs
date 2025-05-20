@@ -1,6 +1,6 @@
 ﻿using FluentValidation.TestHelper;
 using Shouldly;
-using TagStudio.WebApi.Features.Users;
+using TagStudio.Identity.Features;
 using WebApi.Tests.TestData;
 
 namespace WebApi.Tests.Users;

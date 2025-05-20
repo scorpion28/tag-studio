@@ -13,7 +13,6 @@
         <PackageReference Include="FastEndpoints.Swagger"/>
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer"/>
         <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore"/>
-        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore"/>
         <PackageReference Include="Microsoft.AspNetCore.OpenApi"/>
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
             <PrivateAssets>all</PrivateAssets>
@@ -26,11 +25,9 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Identity\Identity.csproj" />
         <ProjectReference Include="..\ServiceDefaults\ServiceDefaults.csproj"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <Folder Include="Features\Entries\EntryTag\" />
+        <ProjectReference Include="..\Tags\Tags.csproj" />
     </ItemGroup>
 
     <ItemGroup>

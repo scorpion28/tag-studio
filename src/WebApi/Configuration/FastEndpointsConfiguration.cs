@@ -1,7 +1,7 @@
 ﻿using System.Security.Claims;
 using FastEndpoints;
-using TagStudio.WebApi.Common.Models;
-using TagStudio.WebApi.Features.Authentication;
+using TagStudio.Tags.Common.Models;
+using TagStudio.WebApi.Common.Authentication;
 
 // ReSharper disable once CheckNamespace
 internal static class FastEndpointsConfiguration

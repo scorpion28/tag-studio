@@ -1,8 +1,10 @@
 ﻿using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc;
+using TagStudio.Tags.Common;
+using TagStudio.Tags.Common.Models.Tags;
+using TagStudio.Tags.Features.Tags;
 using TagStudio.WebApi.Common;
-using TagStudio.WebApi.Features.Tags;
 using TagStudio.WebApi.FunctionalTests.Common;
 
 namespace TagStudio.WebApi.FunctionalTests.Tags;

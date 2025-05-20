@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
 using FastEndpoints;
 using Scalar.AspNetCore;
-using TagStudio.WebApi.Infrastructure.Data;
+using TagStudio.WebApi.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,13 +9,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 
 builder.AddWebServices();
-builder.AddInfrastructureServices();
+
+builder.AddAppIdentityServices();
+builder.AddTagsServices();
 
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    await app.InitializeDatabaseAsync();
+    await app.MigrateDatabasesAsync();
 
     app.MapScalarApiReference(options =>
     {
@@ -52,6 +54,8 @@ app.UseOpenApi(c => c.Path = "/openapi/{documentName}.json");
 
 app.Run();
 
-// Needed to access the Program class in tests
+
 // ReSharper disable once ClassNeverInstantiated.Global
+
+// Needed to access the Program class in tests
 public partial class Program;

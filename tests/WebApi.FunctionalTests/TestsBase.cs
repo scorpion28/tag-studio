@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using TagStudio.WebApi.Domain.Common;
-using TagStudio.WebApi.Infrastructure.Data;
+using TagStudio.Tags.Data;
 
 namespace TagStudio.WebApi.FunctionalTests;
 
@@ -29,7 +28,7 @@ public class TestsBase : IAsyncLifetime
         where T : class
     {
         await using var scope = _appFactory.Services.CreateAsyncScope();
-        await using var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        await using var db = scope.ServiceProvider.GetRequiredService<TagsDbContext>();
 
         await db.Set<T>().AddRangeAsync(entities);
 

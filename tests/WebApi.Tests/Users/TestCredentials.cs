@@ -1,5 +1,5 @@
 ﻿using FastEndpoints;
-using TagStudio.WebApi.Features.Users;
+using TagStudio.Identity.Features;
 
 namespace WebApi.Tests.Users;
 
