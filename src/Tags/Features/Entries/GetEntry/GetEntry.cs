@@ -1,7 +1,8 @@
 ﻿using Ardalis.GuardClauses;
 using FastEndpoints;
+using Microsoft.EntityFrameworkCore;
 using TagStudio.Shared.User;
-using TagStudio.Tags.Common;
+using TagStudio.Tags.Common.Mapping;
 using TagStudio.Tags.Common.Models;
 using TagStudio.Tags.Data;
 
@@ -13,7 +14,7 @@ public class GetEntryEndpoint(TagsDbContext dbContext, CurrentUser user)
     public override void Configure()
     {
         Get("/entries/{id:guid}");
-        
+
         Summary(s => s.Summary = "Get Entry");
     }
 
@@ -21,7 +22,9 @@ public class GetEntryEndpoint(TagsDbContext dbContext, CurrentUser user)
     {
         var id = Route<Guid>("id");
 
-        var entry = await dbContext.Entries.FindAsync([id], ct);
+        var entry = await dbContext.Entries
+            .Include(e => e.Tags)
+            .FirstOrDefaultAsync(e => e.Id == id, ct);
 
         Guard.Against.NotFound(id, entry);
         Guard.Against.Forbidden(entry.OwnerId, user.Id);
