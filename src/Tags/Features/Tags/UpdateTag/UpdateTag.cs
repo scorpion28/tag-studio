@@ -1,5 +1,6 @@
 using Ardalis.GuardClauses;
 using FastEndpoints;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using TagStudio.Tags.Data;
 
@@ -16,7 +17,9 @@ public class UpdateTagEndpoint(TagsDbContext dbContext, ILogger<UpdateTagEndpoin
 
     public override async Task HandleAsync(UpdateTagRequest req, CancellationToken ct)
     {
-        var entity = await dbContext.Tags.FindAsync([req.Id], ct);
+        var entity = await dbContext.Tags
+            .Include(t => t.Parents)
+            .FirstOrDefaultAsync(t => t.Id == req.Id, ct);
 
         Guard.Against.NotFound(req.Id, entity);
         Guard.Against.Forbidden(entity.OwnerId, req.UserId);
@@ -35,9 +38,9 @@ public class UpdateTagEndpoint(TagsDbContext dbContext, ILogger<UpdateTagEndpoin
         }
 
         await dbContext.SaveChangesAsync(ct);
-        
+
         logger.LogInformation("User {UserId} updated tag {TagId}", req.UserId, req.Id);
-        
+
         await SendNoContentAsync(ct);
     }
 }

@@ -1,4 +1,4 @@
-﻿using Ardalis.GuardClauses;
+using Ardalis.GuardClauses;
 using FastEndpoints;
 using Microsoft.Extensions.Logging;
 using TagStudio.Shared.User;

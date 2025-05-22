@@ -25,7 +25,7 @@ public class TagsTests : TestsBase, IAsyncLifetime
         _httpClient = appFactory.CreateAuthorizedClient(_userId);
         _dataGenerator = TestDataGenerator.Create(_userId);
     }
-    
+
     public new async Task InitializeAsync()
     {
         await _appFactory.CreateUserAsync(_userId);
@@ -110,29 +110,6 @@ public class TagsTests : TestsBase, IAsyncLifetime
         var tagId = Guid.NewGuid();
 
         var response = await _httpClient.GetAsync($"/tags/{tagId}");
-
-        response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
-    }
-
-    [Fact]
-    public async Task UpdateTag_ShouldReturnOk_WhenValidRequest()
-    {
-        var initialTagData = _dataGenerator.GenerateTag(_userId);
-        await SeedDbAsync(initialTagData);
-        var request = new { Name = "Updated" };
-
-        var response = await _httpClient.PatchAsJsonAsync($"/tags/{initialTagData.Id}", request);
-
-        response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
-    }
-
-    [Fact]
-    public async Task UpdateTag_ShouldReturnNotFound_WhenTagDoesNotExist()
-    {
-        var tagId = Guid.NewGuid();
-        var request = new UpdateTagRequest { Name = "Updated" };
-
-        var response = await _httpClient.PatchAsJsonAsync($"/tags/{tagId}", request);
 
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }

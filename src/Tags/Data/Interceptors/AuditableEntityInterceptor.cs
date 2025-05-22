@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using TagStudio.Tags.Domain.Common;
@@ -34,16 +34,18 @@ public class AuditableEntityInterceptor : SaveChangesInterceptor
     {
         if (context == null) return;
 
-        var entityEntries = context.ChangeTracker.Entries<BaseAuditableEntity>();
-        foreach (var entry in entityEntries)
+        foreach (var entry in context.ChangeTracker.Entries<BaseAuditableEntity>())
         {
-            var utcNow = _dateTime.GetUtcNow();
-            if (entry.State is EntityState.Added or EntityState.Modified || entry.HasChangedOwnedEntities() )
+            if (entry.State is EntityState.Added or EntityState.Modified || entry.HasChangedOwnedEntities())
             {
-                entry.Entity.Created = utcNow;
-            }
+                var utcNow = _dateTime.GetUtcNow();
+                if (entry.State == EntityState.Added)
+                {
+                    entry.Entity.Created = utcNow;
+                }
 
-            entry.Entity.LastModified = utcNow;
+                entry.Entity.LastModified = utcNow;
+            }
         }
     }
 }
@@ -51,8 +53,8 @@ public class AuditableEntityInterceptor : SaveChangesInterceptor
 public static class Extensions
 {
     public static bool HasChangedOwnedEntities(this EntityEntry entry) =>
-        entry.References.Any(r => 
-            r.TargetEntry != null && 
-            r.TargetEntry.Metadata.IsOwned() && 
+        entry.References.Any(r =>
+            r.TargetEntry != null &&
+            r.TargetEntry.Metadata.IsOwned() &&
             r.TargetEntry.State is EntityState.Added or EntityState.Modified);
 }
