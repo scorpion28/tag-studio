@@ -1,9 +1,8 @@
 ﻿using Riok.Mapperly.Abstractions;
 using TagStudio.Tags.Common.Models;
 using TagStudio.Tags.Domain;
-using TagStudio.Tags.Features.Entries;
 
-namespace TagStudio.Tags.Common;
+namespace TagStudio.Tags.Common.Mapping;
 
 [Mapper(RequiredMappingStrategy = RequiredMappingStrategy.Target)]
 public static partial class EntryMapper

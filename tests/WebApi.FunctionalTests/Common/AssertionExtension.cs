@@ -1,5 +1,5 @@
-﻿using TagStudio.Tags.Common.Models.Tags;
-using TagStudio.Tags.Features.Tags;
+﻿using TagStudio.Tags.Common.Models;
+using TagStudio.Tags.Common.Models.Tags;
 
 // ReSharper disable RedundantCast
 

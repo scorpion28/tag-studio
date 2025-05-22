@@ -3,9 +3,8 @@ using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using TagStudio.Shared.User;
 using TagStudio.Tags.Common;
-using TagStudio.Tags.Common.Models.Tags;
+using TagStudio.Tags.Common.Models;
 using TagStudio.Tags.Data;
-using TagStudio.Tags.Features.Tags;
 
 namespace TagStudio.Tags.Features.Entries.EntryTag;
 

@@ -1,6 +1,7 @@
 ﻿using FastEndpoints;
 using TagStudio.Tags.Common;
 using TagStudio.Tags.Common.Constants;
+using TagStudio.Tags.Common.Mapping;
 using TagStudio.Tags.Common.Models;
 using TagStudio.Tags.Data;
 

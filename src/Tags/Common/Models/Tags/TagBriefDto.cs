@@ -1,4 +1,4 @@
-﻿namespace TagStudio.Tags.Common.Models.Tags;
+﻿namespace TagStudio.Tags.Common.Models;
 
 public class TagBriefDto
 {

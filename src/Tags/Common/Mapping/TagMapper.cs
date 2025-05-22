@@ -1,4 +1,5 @@
 ﻿using Riok.Mapperly.Abstractions;
+using TagStudio.Tags.Common.Models;
 using TagStudio.Tags.Common.Models.Tags;
 using TagStudio.Tags.Domain;
 

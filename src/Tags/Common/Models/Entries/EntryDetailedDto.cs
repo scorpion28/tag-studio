@@ -1,6 +1,4 @@
-﻿using TagStudio.Tags.Common.Models.Tags;
-
-namespace TagStudio.Tags.Common.Models;
+﻿namespace TagStudio.Tags.Common.Models;
 
 public class EntryDetailedDto
 {
