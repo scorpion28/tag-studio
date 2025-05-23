@@ -16,7 +16,7 @@ public class EntryTagsTests : TestsBase, IAsyncLifetime
     public EntryTagsTests(TagStudioFactory appFactory) : base(appFactory)
     {
         _appFactory = appFactory;
-        
+
         _userId = Guid.NewGuid();
         _httpClient = appFactory.CreateAuthorizedClient(_userId);
         _dataGenerator = TestDataGenerator.Create(_userId);
@@ -26,7 +26,7 @@ public class EntryTagsTests : TestsBase, IAsyncLifetime
     {
         await _appFactory.CreateUserAsync(_userId);
     }
-    
+
     [Fact]
     public async Task GetEntryTags_ShouldReturnAllTags()
     {
@@ -92,5 +92,47 @@ public class EntryTagsTests : TestsBase, IAsyncLifetime
         var response = await _httpClient.PostAsJsonAsync($"/entries/{entry.Id}/tags", request);
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task RemoveEntryTag_ShouldReturn204NoContent_WhenValidTagsId()
+    {
+        // Arrange
+        var entry = _dataGenerator.GenerateEntry();
+        var tag = _dataGenerator.GenerateTag();
+        entry.Tags.Add(tag);
+
+        await SeedDbAsync(entry);
+
+        // Act
+        var response = await _httpClient.DeleteAsync($"/entries/{entry.Id}/tags/{tag.Id}");
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        // Verify the tag was removed from entry
+        var getEntryTagsResponse = await _httpClient.GetAsync($"/entries/{entry.Id}/tags");
+        getEntryTagsResponse.IsSuccessStatusCode.ShouldBeTrue();
+        var entryTags = await getEntryTagsResponse.Content.ReadFromJsonAsync<List<TagBriefDto>>();
+
+        entryTags.ShouldNotBeNull();
+        entryTags.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task RemoveEntryTag_ShouldReturnNotFound_WhenEntryTagDoesNotExist()
+    {
+        // Arrange
+        var entry = _dataGenerator.GenerateEntry();
+        var tag = _dataGenerator.GenerateTag();
+
+        await SeedDbAsync(entry);
+        await SeedDbAsync(tag);
+
+        // Act
+        var response = await _httpClient.DeleteAsync($"/entries/{entry.Id}/tags/{tag.Id}");
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
 }
