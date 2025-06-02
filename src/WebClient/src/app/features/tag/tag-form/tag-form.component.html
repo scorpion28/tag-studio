@@ -1,0 +1,30 @@
+<app-modal-wrapper (close)="onFormClose()">
+
+  <div>
+    <input type="text" [(ngModel)]="tagName" placeholder="New Tag"
+           class="text-alpha-81 text-4xl rounded-lg block w-full pb-5 dark:placeholder-neutral-700 font-bold outline-0">
+  </div>
+
+  <div role="table" class="text-sm text-alpha-46">
+    <div role="row" class="flex items-center py-2">
+      <div class="shrink-0 hover:bg-dark-gray-350 py-1 px-2 rounded-xs">
+        <label class="text-white opacity-60">Parent tags</label>
+      </div>
+      <div class="text-alpha-87 grow-0 w-full p-1 hover:bg-neutral-700 rounded-xs px-2"
+           (click)="showPossibleParentTags()">
+        @for (tag of tagParents(); track tag.id) {
+          <span class="bg-green-900 px-1.5 py-0.5 mr-1 rounded-sm mt-5">{{ tag.name }}</span>
+        } @empty {
+          <span class="px-1.5 py-0.5 rounded-sm mt-5 text-gray-500">Empty</span>
+        }
+      </div>
+    </div>
+    @if (showTagPicker) {
+      <app-tag-picker [selectedTags]="tagParents()"
+                      (tagAdded)="onParentTagAdded($event)" (tagRemoved)="onParentTagRemoved($event)"
+                      (closePickerEvent)="hidePossibleParentTags()"
+      />
+    }
+  </div>
+
+</app-modal-wrapper>
