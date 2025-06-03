@@ -2,12 +2,11 @@
 import { HttpClient } from '@angular/common/http';
 import {
   catchError,
-  concatMap,
+  concatMap, EMPTY,
   map,
   merge,
   mergeMap,
   Observable,
-  of,
   startWith,
   Subject,
   switchMap,
@@ -51,7 +50,7 @@ export class TagService {
   remove$ = new Subject<RemoveTag>();
 
   tagAdded$ = this.add$.pipe(
-    concatMap(addTag =>
+    mergeMap(addTag =>
       this.http
         .post(this.baseUrl, {
           name: addTag.name,
@@ -62,7 +61,7 @@ export class TagService {
   );
 
   tagEdited$ = this.edit$.pipe(
-    mergeMap(update =>
+    concatMap(update =>
       this.http
         .patch(`${this.baseUrl}/${update.id}`, {
           name: update.data.name,
@@ -108,21 +107,24 @@ export class TagService {
       .pipe(
         startWith(null),
         switchMap(() =>
-          this.getTags(),
+          this.getTags()
+            .pipe(catchError(err => this.handleError(err))),
         ),
         takeUntilDestroyed(),
       )
       .subscribe((tagsPaginated) =>
-        this.state.update(state => ({
-            ...state,
-            tagsPaginated: tagsPaginated,
-            loaded: true,
-          }),
-        ),
+            this.state.update(state => ({
+                ...state,
+                tagsPaginated: tagsPaginated,
+                loaded: true,
+              }),
+            ),
       );
   }
 
   private handleError(err: any) {
-    return of(null);
+    if(err instanceof Error)
+    console.error(err);
+    return EMPTY;
   }
 }

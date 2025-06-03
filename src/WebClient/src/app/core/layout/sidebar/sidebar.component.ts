@@ -21,7 +21,7 @@ export class SidebarComponent implements OnInit {
   }
 
   getUserName(): string {
-    return this.userService.getUserInfo()?.name ?? "Account";
+    return this.userService.user()?.name ?? "Account";
   }
 
 }

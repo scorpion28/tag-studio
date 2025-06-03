@@ -1,121 +1,178 @@
-import { Injectable } from '@angular/core';
+import { computed, effect, inject, Injectable, signal } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { UserCredentials } from "../models/user-credentials.model";
-import { LoginResponse } from "../models/login-response.model";
-import { UserInfoBrief } from "../models/user-info-brief.model";
+import { UserCredentials } from '../models/user-credentials.model';
+import { LoginResponse } from '../models/login-response.model';
+import { UserInfo } from '../models/user-info-brief.model';
 import {
-  BehaviorSubject,
-  catchError,
-  distinctUntilChanged,
+  catchError, EMPTY,
   map,
   Observable,
-  of,
-  shareReplay,
+  of, shareReplay,
+  Subject, switchMap,
   tap,
-  throwError
 } from 'rxjs';
-import { JwtService } from './jwt.service';
-import { AuthError, ValidationError } from "../models/auth-errors.model";
+import { StorageService } from './storage.service';
+import { AuthError, ValidationError } from '../models/auth-errors.model';
 import { JwtTokenData } from '../models/jwt-token-data.model';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-export function isValidationError(obj: any): obj is ValidationError {
-  return typeof obj.errors === 'object' && obj.message;
+interface AuthState {
+  user: UserInfo | null;
+  error: AuthError | null;
+  tokenData: JwtTokenData | null;
+  loading: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  authPath = "api/auth";
+  private readonly authPath = 'api/auth';
 
-  constructor(private jwtService: JwtService, private http: HttpClient) {
-    const hasValidToken = jwtService.isAccessTokenValid();
-    this._isAuthenticated = new BehaviorSubject<boolean>(hasValidToken);
-    this.isAuthenticated$ = this._isAuthenticated.asObservable()
-      .pipe(
-        distinctUntilChanged(),
-        shareReplay(1)
-      );
-  }
+  private storageService: StorageService = inject(StorageService);
+  private http = inject(HttpClient);
 
-  private readonly _isAuthenticated: BehaviorSubject<boolean>;
-  readonly isAuthenticated$: Observable<boolean>;
+  // state
+  private readonly state = signal<AuthState>({
+    tokenData: null,
+    loading: false,
+    error: null,
+    user: null,
+  });
 
-  getTokenSilent(){
-    if (this.jwtService.isAccessTokenValid()) {
-      return of(this.jwtService.getAccessToken());
+  // selectors
+  user = computed(() => this.state().user);
+  tokenData = computed(() => this.state().tokenData);
+  isAuthenticated = computed(() => !!this.tokenData());
+  loading = computed(() => {
+    let loading = this.state().loading;
+    console.log(`Loading: ${loading}`);
+    return loading;
+  });
+  error = computed(() => {
+    let error = this.state().error;
+    if (error) {
+      console.log(error.message);
     }
+    return error;
+  });
 
-    return this.refreshToken()
-      .pipe(map(success => success ? this.jwtService.getAccessToken() : null));
-  }
+  // sources
+  login$ = new Subject<UserCredentials>();
+  logOut$ = new Subject<void>();
+  register$ = new Subject<UserCredentials>();
 
-  register(request: UserCredentials) {
-    return this.http.post(`${this.authPath}/signup`, request)
-      .pipe(catchError(this.handleError));
-  }
+  private userLoggedIn$ = this.login$
+    .pipe(
+      switchMap(credentials =>
+        this.http.post<LoginResponse>(`${this.authPath}/login`, credentials)
+          .pipe(catchError(err => this.handleError(err))),
+      ),
+    );
 
-  logIn(request: UserCredentials) {
-    return this.http.post<LoginResponse>(`${this.authPath}/login`, request)
-      .pipe(
-        tap(response => {
-          // TODO: extract
-          this.jwtService.saveToken(response.jwt);
-          this.saveUserInfo(response.user);
+  accountRegistered$ = this.register$
+    .pipe(
+      switchMap(credentials =>
+        this.http.post(`${this.authPath}/signup`, credentials)
+          .pipe(catchError(err => this.handleError(err))),
+      ),
+      shareReplay(1),
+    );
 
-          this._isAuthenticated.next(true);
+  constructor() {
+    const tokenData = this.storageService.getTokenData();
+    const userInfo = this.storageService.getUserInfo();
+
+    if (tokenData && userInfo) {
+      this.state.update((state) => ({
+          ...state,
+          tokenData,
+          user: userInfo,
         }),
-        catchError(this.handleError.bind(this))
       );
-  }
-
-  refreshToken(): Observable<boolean> {
-    const token = this.jwtService.getRefreshToken();
-    if (!token) {
-      return of(false);
     }
 
-    return this.http.post<JwtTokenData>(`${this.authPath}/refresh`, { refreshToken: token })
+    this.userLoggedIn$
+      .pipe(takeUntilDestroyed())
+      .subscribe(res =>
+        this.state.update((state) => ({
+            ...state,
+            tokenData: res.jwt,
+            user: res.user,
+            loading: false,
+          }),
+        ),
+      );
+
+    this.accountRegistered$
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => this.state.update(state => ({
+            ...state,
+            loading: false,
+          }),
+        ),
+      );
+
+    this.logOut$
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => this.purgeData());
+
+    effect(() => {
+        const tokenData = this.tokenData();
+        const user = this.user();
+
+        if (tokenData) {
+          this.storageService.saveTokenData(tokenData);
+        }
+        if (user) {
+          this.storageService.saveUserInfo(user);
+        }
+      },
+    );
+  }
+
+  refreshToken(): Observable<string | null> {
+    const refreshToken = this.tokenData()?.refreshToken;
+    if (!refreshToken) {
+      return of(null);
+    }
+
+    return this.http
+      .post<JwtTokenData>(`${this.authPath}/refresh`, { refreshToken: refreshToken })
       .pipe(
+        catchError(err => this.handleError(err)),
         tap(response => {
-          this.jwtService.saveToken(response);
+          this.state.update(state => ({
+            ...state,
+            loading: false,
+            error: null,
+            tokenData: response,
+          }));
 
-          this._isAuthenticated.next(true);
-          console.log('Refresh token successfully');
+          console.log('Token refreshed successfully');
         }),
-        map(() => true),
-        catchError(error => {
-          console.error('Token refresh failed:', error);
-          this._isAuthenticated.next(false);
-          return of(false);
-        })
+        map((tokenData) => tokenData.refreshToken),
       );
   }
 
-  logout() {
-    this.jwtService.destroyTokenData();
-    this.removeUserInfo();
-  }
-
-  getUserInfo(): UserInfoBrief | null {
-    const userInfo = localStorage.getItem('user');
-    if (!userInfo) return null;
-
-    try {
-      return JSON.parse(userInfo);
-    } catch (e) {
-      console.error(e);
-      return null;
+  getTokenSilent(): Observable<string | null> {
+    if (this.isAccessTokenValid()) {
+      return of(this.tokenData()?.accessToken!);
     }
+
+    return this.refreshToken();
   }
 
-  saveUserInfo(userInfo: UserInfoBrief) {
-    localStorage["user"] = JSON.stringify(userInfo);
+  private isAccessTokenValid(): boolean {
+    const tokenData = this.tokenData();
+    if (!tokenData) {
+      return false;
+    }
+
+    return tokenData.expiresAtUtc > Date.now();
   }
 
-  removeUserInfo() {
-    localStorage.removeItem("user");
-  }
+  private handleError(errorResponse: HttpErrorResponse) {
+    if (!errorResponse) return EMPTY;
 
-  private handleError(errorResponse: HttpErrorResponse): Observable<never> {
     let authError: AuthError;
 
     if (errorResponse.error instanceof ErrorEvent) {
@@ -123,7 +180,7 @@ export class AuthService {
       console.error('An error occurred:', errorResponse.error.message);
       authError = {
         message: `Network or client error: ${errorResponse.error.message}`,
-        statusCode: 0
+        statusCode: 0,
       };
     } else {
       console.error(errorResponse.error);
@@ -131,24 +188,43 @@ export class AuthService {
       if (errorResponse.status === 400 && isValidationError(errorResponse.error)) {
         const validationError = errorResponse.error;
         authError = {
-          message: "Validation error occurred",
+          message: 'Validation error occurred',
           details: validationError,
-          statusCode: errorResponse.status
+          statusCode: errorResponse.status,
         };
       } else if (errorResponse.status === 401) {
         authError = {
           message: 'Invalid username or password. Please try again.',
-          statusCode: errorResponse.status
+          statusCode: errorResponse.status,
         };
-        this._isAuthenticated.next(false);
       } else {
         authError = {
           message: 'An unexpected server error occurred. Please try again later.',
-          statusCode: errorResponse.status
+          statusCode: errorResponse.status,
         };
       }
     }
 
-    return throwError(() => authError);
+    this.state.update((state) => ({ ...state, error: authError }));
+
+    return EMPTY;
   }
+
+  private purgeData() {
+    this.state.update((state) => ({
+        ...state,
+        tokenData: null,
+        loading: false,
+        user: null,
+        error: null,
+      }),
+    );
+
+    this.storageService.removeTokenData();
+    this.storageService.removeUserInfo();
+  }
+}
+
+export function isValidationError(obj: any): obj is ValidationError {
+  return typeof obj.errors === 'object' && obj.message;
 }

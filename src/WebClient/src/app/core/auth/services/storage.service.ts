@@ -1,8 +1,9 @@
 import { Injectable } from "@angular/core";
 import { JwtTokenData } from "../models/jwt-token-data.model";
+import { UserInfo } from '../models/user-info-brief.model';
 
 @Injectable({ providedIn: "root" })
-export class JwtService {
+export class StorageService {
   private readonly STORAGE_KEY = "jwt";
 
   getTokenData(): JwtTokenData | null {
@@ -25,19 +26,31 @@ export class JwtService {
     return this.getTokenData()?.refreshToken || null;
   }
 
-  saveToken(jwtData: JwtTokenData): void {
+  saveTokenData(jwtData: JwtTokenData): void {
     localStorage[this.STORAGE_KEY] = JSON.stringify(jwtData);
   }
 
-  destroyTokenData(): void {
-    window.localStorage.removeItem(this.STORAGE_KEY);
+  removeTokenData(): void {
+    localStorage.removeItem(this.STORAGE_KEY);
   }
 
-  isAccessTokenValid(): boolean {
-    const tokenData = this.getTokenData();
-    if (!tokenData) {
-      return false;
+  getUserInfo(): UserInfo | null {
+    const userInfo = localStorage.getItem('user');
+    if (!userInfo) return null;
+
+    try {
+      return JSON.parse(userInfo);
+    } catch (e) {
+      console.error(e);
+      return null;
     }
-    return tokenData.expiresAtUtc > Date.now();
+  }
+
+  saveUserInfo(userInfo: UserInfo) {
+    localStorage['user'] = JSON.stringify(userInfo);
+  }
+
+  removeUserInfo() {
+    localStorage.removeItem('user');
   }
 }

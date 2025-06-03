@@ -1,14 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, computed, effect, inject } from '@angular/core';
 
-import {
-  ReactiveFormsModule,
-  FormGroup,
-  Validators,
-  FormControl, FormsModule
-} from '@angular/forms';
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { UserCredentials } from './models/user-credentials.model';
 import { AuthService, isValidationError } from './services/auth.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AuthError } from './models/auth-errors.model';
 
 @Component({
@@ -17,89 +12,48 @@ import { AuthError } from './models/auth-errors.model';
   imports: [ReactiveFormsModule, RouterLink, FormsModule],
   templateUrl: './auth.component.html',
 })
-export class AuthComponent implements OnInit {
-  isLoginMode = true;
+export class AuthComponent {
+  auth = inject(AuthService);
+  router = inject(Router);
+  route = inject(ActivatedRoute);
+  private formBuilder = inject(FormBuilder);
 
-  authForm = new FormGroup({
-    email: new FormControl('', [Validators.required, Validators.email]),
-    password: new FormControl('', [Validators.required, Validators.minLength(8)]),
-  });
+  isLoginMode = this.route.snapshot.url.at(-1)!.path !== 'signup';
 
-  errorMessage: string = "";
-  isLoading: boolean = false;
+  errors = computed(() => this.formatErrors(this.auth.error()));
+  isLoading = this.auth.loading;
 
-  constructor(
-    private authService: AuthService,
-    private router: Router,
-    private route: ActivatedRoute) {
-  }
+  authForm = this.formBuilder.nonNullable.group(
+    {
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(8)]],
+    },
+  );
 
-  ngOnInit(): void {
-    this.isLoginMode = this.route.snapshot.url.at(-1)!.path !== "signup";
+  constructor() {
+    this.auth.accountRegistered$
+      .pipe(takeUntilDestroyed())
+      .subscribe(() =>
+        this.router.navigate(['/login']),
+      );
+
+    effect(() => {
+      if (this.auth.isAuthenticated()) {
+        this.router.navigate(['/app']);
+      }
+    });
   }
 
   onSubmit() {
     this.authForm.markAllAsTouched();
-    this.errorMessage = "";
-
     if (this.authForm.invalid) return;
 
-    this.isLoading = true;
-
-    const formValues = this.authForm.value;
-    const credentials: UserCredentials = {
-      email: formValues.email as string,
-      password: formValues.password as string
-    };
+    const credentials = this.authForm.getRawValue();
 
     if (this.isLoginMode) {
-      this.logIn(credentials);
+      this.auth.login$.next(credentials);
     } else {
-      this.registerUser(credentials);
-    }
-  }
-
-  logIn(credentials: UserCredentials) {
-    this.authService.logIn(credentials)
-      .subscribe({
-        next: (_) => {
-          console.log("Logged in");
-          this.router.navigate(["/app"]);
-        },
-        error: (error: AuthError) => {
-          this.isLoading = false;
-          console.error('Login failed:', error);
-          this.displayError(error);
-        }
-      });
-  }
-
-  registerUser(credentials: UserCredentials) {
-    this.authService.register(credentials)
-      .subscribe({
-        next: _ => {
-          this.router.navigate(["/login"]);
-        },
-        error: (authError: AuthError) => {
-          this.isLoading = false;
-          console.error('Sign up failed:', authError);
-
-          this.displayError(authError);
-        }
-      });
-  }
-
-
-  private displayError(authError: AuthError) {
-    const details = authError.details;
-    if (details) {
-      if (isValidationError(details)) {
-        Object.values(details.errors).forEach((name) => {
-          this.errorMessage += name.join("\n");
-        });
-      }
-    } else {
-      this.errorMessage = authError.message;
+      this.auth.register$.next(credentials);
     }
   }
 
@@ -109,5 +63,16 @@ export class AuthComponent implements OnInit {
 
   get password() {
     return this.authForm.get('password');
+  }
+
+  private formatErrors(authError: AuthError | null): string[] {
+    if (!authError) return [];
+
+    const details = authError.details;
+    if (details && isValidationError(details)) {
+      return Object.values(details.errors).flat();
+    }
+
+    return [authError.message];
   }
 }

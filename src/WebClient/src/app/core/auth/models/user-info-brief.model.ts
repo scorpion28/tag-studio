@@ -1,3 +1,3 @@
-export interface UserInfoBrief {
+export interface UserInfo {
   name: string;
 }
