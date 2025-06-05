@@ -14,15 +14,6 @@ export const tokenInterceptor: HttpInterceptorFn = (req, next) => {
 
   return auth.getTokenSilent()
     .pipe(
-      switchMap(token => {
-        if (token) {
-          const requestWithToken = addTokenToRequest(req, token);
-          return next(requestWithToken);
-        } else {
-          router.navigate(['/login']);
-          throw EMPTY;
-        }
-      }),
       catchError(error => {
         if (error instanceof HttpErrorResponse && error.status === 401) {
           console.error('Error retrieving token:', error);
@@ -32,6 +23,15 @@ export const tokenInterceptor: HttpInterceptorFn = (req, next) => {
         }
 
         return throwError(() => error);
+      }),
+      switchMap(token => {
+        if (token) {
+          const requestWithToken = addTokenToRequest(req, token);
+          return next(requestWithToken);
+        } else {
+          router.navigate(['/login']);
+          throw EMPTY;
+        }
       }),
     );
 };
