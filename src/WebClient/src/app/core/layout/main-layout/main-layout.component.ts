@@ -25,6 +25,10 @@ import { SidebarComponent } from '../sidebar/sidebar.component';
       padding: 20px 40px 0 50px;
       width: calc(100% - 200px);
     }
+
+    * {
+      font-family: sans-serif;
+    }
   `
 })
 export class MainLayoutComponent {}
