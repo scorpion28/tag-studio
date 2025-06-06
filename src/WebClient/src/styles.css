@@ -11,7 +11,7 @@
   --color-dark-gray-900: rgb(25, 25, 25);
 
   --color-alpha-46: rgba(255, 255, 255, 0.46);
-  --color-alpha-81: oklch(1 0 89.876 / 0.81);
+  --color-alpha-81: rgba(255, 255, 255, 0.81);
   --color-alpha-87: rgba(255, 255, 255, 0.87);
 
   --color-gray-400: #9b9b9b;

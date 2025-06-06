@@ -1,5 +1,8 @@
 ﻿import { Component, input, output, TemplateRef } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
+import { PaginationInfo } from '../models/pagination';
+import { FormsModule } from '@angular/forms';
+import { TablePaginationComponent } from './table-pagination.component';
 
 export interface TableColumn {
   header: string;
@@ -11,8 +14,8 @@ export interface TableColumn {
   selector: 'app-data-table',
   standalone: true,
   template: `
-    <div class="rounded-2xl overflow-clip">
-      <table class="w-full text-sm text-left  text-gray-500">
+    <div class=" overflow-clip">
+      <table class=" rounded-2xl w-full text-sm text-left  text-gray-500">
         <thead>
           @for (column of columns(); track column.key) {
             <th class="pl-3 py-3">{{ column.header }}</th>
@@ -36,29 +39,46 @@ export interface TableColumn {
                 </td>
               }
               <td class="px-1">
-                <button (click)="edit.emit(item)" class="text-blue-500 hover:underline px-1">Edit</button>
-                <button (click)="remove.emit(item)" class="text-blue-500 hover:underline">Remove</button>
+                <button (click)="edit.emit(item.id)" class="text-blue-500 hover:underline px-1">Edit</button>
+                <button (click)="remove.emit(item.id)" class="text-blue-500 hover:underline">Remove</button>
               </td>
             </tr>
           } @empty {
             <tr class="w-full h-12 border-b border-b-dark-gray-400 border-gray-700">
               <td class="text-center" [colSpan]="columns().length + 1">
-                "There are no items yet"
+                There are no items yet
               </td>
             </tr>
           }
         </tbody>
       </table>
+
+      <!-- Pagination -->
+      <app-table-pagination
+        [pagination]="pagination()"
+        [itemsCount]="items().length"
+        [pageSize]="pageSize()"
+        (nextPage)="pageChange.emit(pagination().pageNumber + 1)"
+        (previousPage)="pageChange.emit(pagination().pageNumber - 1)"
+        (pageSizeChange)="pageSizeChange.emit($event)"
+      />
+
     </div>
+
   `,
-  imports: [
-    NgTemplateOutlet,
-  ],
+  imports: [NgTemplateOutlet, FormsModule, TablePaginationComponent],
 })
 export class DataTableComponent {
   columns = input.required<TableColumn[]>();
-  items = input.required<any>();
+  items = input.required<any[]>();
+  pagination = input.required<PaginationInfo>();
+  pageSize = input.required<number>();
+  pageSizeOptions = input([10, 20, 50]);
 
-  edit = output<any>();
-  remove = output<any>();
+  edit = output<string>();
+  remove = output<string>();
+
+  pageChange = output<number>();
+  pageSizeChange = output<number>();
+  protected readonly console = console;
 }

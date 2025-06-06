@@ -1,13 +1,13 @@
 ﻿import { computed, inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import {
-  catchError,
-  concatMap, EMPTY,
+  BehaviorSubject,
+  catchError, combineLatest,
+  concatMap, debounceTime, distinctUntilChanged, EMPTY,
   map,
   merge,
   mergeMap,
-  Observable,
-  startWith,
+  Observable, skip, startWith,
   Subject,
   switchMap,
 } from 'rxjs';
@@ -15,10 +15,11 @@ import { PaginatedList } from '../../../shared/models/paginated-list';
 import { TagDetailed } from '../models/tag-detailed.model';
 import { CreateTag, EditTag, RemoveTag, Tag, toTagModel } from '../models/tag.model';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { PaginationInfo } from '../../../shared/models/pagination';
 
 interface TagsState {
   tagsPaginated: PaginatedList<Tag>;
-  loaded: boolean,
+  loading: boolean,
   error: any
 }
 
@@ -39,17 +40,20 @@ export class TagService {
       totalCount: 0,
       totalPages: 1,
     },
-    loaded: false,
+    loading: false,
     error: null,
   });
 
   tags = computed(() => this.state().tagsPaginated.items);
+  pagination = computed(() => this.state().tagsPaginated as PaginationInfo);
 
   add$ = new Subject<CreateTag>();
   edit$ = new Subject<EditTag>();
   remove$ = new Subject<RemoveTag>();
+  page$ = new BehaviorSubject<number>(1);
+  pageSize$ = new BehaviorSubject<number>(10);
 
-  tagAdded$ = this.add$.pipe(
+  private tagAdded$ = this.add$.pipe(
     mergeMap(addTag =>
       this.http
         .post(this.baseUrl, {
@@ -60,7 +64,7 @@ export class TagService {
     ),
   );
 
-  tagEdited$ = this.edit$.pipe(
+  private tagEdited$ = this.edit$.pipe(
     concatMap(update =>
       this.http
         .patch(`${this.baseUrl}/${update.id}`, {
@@ -70,7 +74,7 @@ export class TagService {
         .pipe(catchError(err => this.handleError(err)))),
   );
 
-  tagRemoved$ = this.remove$.pipe(
+  private tagRemoved$ = this.remove$.pipe(
     mergeMap((id) =>
       this.http
         .delete(`${this.baseUrl}/${id}`)
@@ -78,7 +82,51 @@ export class TagService {
     ),
   );
 
-  getTags(pageNumber: number = 1, pageSize: number = 20): Observable<PaginatedList<Tag>> {
+  private paginationUpdated$ = combineLatest([this.page$, this.pageSize$])
+    .pipe(
+      map(([pageNumber, pageSize]) =>
+        ({ page: pageNumber, pageSize: pageSize }),
+      ),
+      debounceTime(300),
+      distinctUntilChanged((prev, curr) =>
+        prev.page === curr.page && prev.pageSize == curr.pageSize),
+    );
+
+  private tagsLoaded$ = merge(this.tagAdded$, this.tagEdited$, this.tagRemoved$)
+    .pipe(
+      startWith(null),
+      switchMap(() => this.paginationUpdated$),
+      switchMap(({ page, pageSize }) =>
+        this.getTags(page, pageSize).pipe(
+          catchError(err => this.handleError(err)),
+        ),
+      ),
+    );
+
+  constructor() {
+    this.tagsLoaded$
+      .pipe(takeUntilDestroyed())
+      .subscribe((tagsPaginated) =>
+        this.state.update(state => ({
+            ...state,
+            tagsPaginated: tagsPaginated,
+            loading: false,
+          }),
+        ),
+      );
+
+    // Reset the page to 1 when pageSize changes
+    this.pageSize$
+      .pipe(
+        takeUntilDestroyed(),
+        skip(1),
+      )
+      .subscribe(() => this.page$.next(1));
+  }
+
+  getTags(pageNumber: number = 1, pageSize: number = 5): Observable<PaginatedList<Tag>> {
+    this.state.update((state) => ({ ...state, loaded: true }));
+
     return this.http.get<PaginatedList<TagDetailed>>(this.baseUrl, {
       params: {
         pageNumber: Math.floor(pageNumber),
@@ -86,12 +134,10 @@ export class TagService {
       },
     })
       .pipe(
-        map(list => {
-          return {
-            ...list,
-            items: list.items.map(tagDto => toTagModel(tagDto)),
-          };
-        }),
+        map(list => ({
+          ...list,
+          items: list.items.map(tagDto => toTagModel(tagDto)),
+        })),
       );
   }
 
@@ -102,28 +148,13 @@ export class TagService {
       );
   }
 
-  constructor() {
-    merge(this.tagAdded$, this.tagEdited$, this.tagRemoved$)
-      .pipe(
-        startWith(null),
-        switchMap(() =>
-          this.getTags()
-            .pipe(catchError(err => this.handleError(err))),
-        ),
-        takeUntilDestroyed(),
-      )
-      .subscribe((tagsPaginated) =>
-            this.state.update(state => ({
-                ...state,
-                tagsPaginated: tagsPaginated,
-                loaded: true,
-              }),
-            ),
-      );
-  }
-
   private handleError(err: any) {
-    if(err instanceof Error)
+    this.state.update(state => ({
+        ...state,
+        error: err,
+      }),
+    );
+
     console.error(err);
     return EMPTY;
   }

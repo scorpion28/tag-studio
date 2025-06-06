@@ -1,9 +1,5 @@
-export interface PaginatedList<T> {
-  items: T[];
-  pageNumber: number;
-  totalPages: number;
-  totalCount: number;
+import { PaginationInfo } from './pagination';
 
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
+export interface PaginatedList<T> extends PaginationInfo {
+  items: T[];
 }

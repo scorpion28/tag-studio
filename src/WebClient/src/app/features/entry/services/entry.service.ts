@@ -1,13 +1,14 @@
 ﻿import { computed, inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import {
-  catchError,
-  concatMap, EMPTY,
+  BehaviorSubject,
+  catchError, combineLatest,
+  concatMap, debounceTime, distinctUntilChanged, EMPTY,
   map,
   merge,
   mergeMap,
   Observable,
-  of,
+  of, skip,
   startWith,
   Subject,
   switchMap,
@@ -17,10 +18,11 @@ import { CreateEntry, EditEntry, Entry, RemoveEntry, toEntryModel } from '../mod
 import { EntryBrief } from '../models/entry-brief.model';
 import { EntryDetailed } from '../models/entry-detailed.model';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { PaginationInfo } from '../../../shared/models/pagination';
 
 interface EntriesState {
   entriesPaginated: PaginatedList<EntryBrief>;
-  loaded: boolean;
+  loading: boolean;
   error: string | null;
 }
 
@@ -41,19 +43,22 @@ export class EntryService {
       hasNextPage: false,
       hasPreviousPage: false,
     },
-    loaded: false,
+    loading: false,
     error: null,
   });
 
   // selectors
   entries = computed(() => this.state().entriesPaginated.items);
+  pagination = computed(() => this.state().entriesPaginated as PaginationInfo);
 
   // sources
   add$ = new Subject<CreateEntry>();
   edit$ = new Subject<EditEntry>();
   remove$ = new Subject<RemoveEntry>();
+  page$ = new BehaviorSubject<number>(1);
+  pageSize$ = new BehaviorSubject<number>(10);
 
-  entryAdded$ = this.add$.pipe(
+  private entryAdded$ = this.add$.pipe(
     concatMap(addEntry =>
       this.http
         .post(this.baseUrl, addEntry)
@@ -61,7 +66,7 @@ export class EntryService {
     ),
   );
 
-  entryEdited$ = this.edit$.pipe(
+  private entryEdited$ = this.edit$.pipe(
     mergeMap(update =>
       this.http
         .patch(`${this.baseUrl}/${update.id}`, update.data)
@@ -69,13 +74,64 @@ export class EntryService {
     ),
   );
 
-  entryRemoved$ = this.remove$.pipe(
+  private entryRemoved$ = this.remove$.pipe(
     mergeMap((id) =>
       this.http
         .delete(`${this.baseUrl}/${id}`)
         .pipe(catchError(err => this.handleError(err))),
     ),
   );
+
+  private paginationUpdated$ = combineLatest([this.page$, this.pageSize$])
+    .pipe(
+      map(([pageNumber, pageSize]) =>
+        ({ page: pageNumber, pageSize: pageSize }),
+      ),
+      debounceTime(300),
+      distinctUntilChanged((prev, curr) =>
+        prev.page === curr.page && prev.pageSize == curr.pageSize),
+    );
+
+  private entriesLoaded$ = merge(this.entryAdded$, this.entryEdited$, this.entryRemoved$)
+    .pipe(
+      startWith(null),
+      switchMap(() => this.paginationUpdated$),
+      switchMap(({ page, pageSize }) =>
+        this.getEntries(page, pageSize).pipe(
+          catchError(err => this.handleError(err)),
+        ),
+      ),
+    );
+
+  constructor() {
+    // reducers
+    this.entriesLoaded$
+      .pipe(takeUntilDestroyed())
+      .subscribe((entriesPaginated) =>
+        this.state.update(state => ({
+          ...state,
+          entriesPaginated,
+          loading: false,
+        })),
+      );
+
+    // Default the page to 1 when pageSize changes
+    this.pageSize$
+      .pipe(
+        takeUntilDestroyed(),
+        skip(1),
+      )
+      .subscribe(() => this.page$.next(1));
+  }
+
+  private getEntries(page: number, pageSize: number): Observable<PaginatedList<EntryBrief>> {
+    return this.http.get<PaginatedList<EntryBrief>>(this.baseUrl, {
+      params: {
+        pageNumber: Math.floor(page),
+        pageSize: Math.floor(pageSize),
+      },
+    });
+  }
 
   getEntryById(id: string): Observable<Entry> {
     return this.http.get<EntryDetailed>(`${this.baseUrl}/${id}`)
@@ -97,31 +153,6 @@ export class EntryService {
 
   removeTagFromEntry(entryId: string, tagId: string) {
     return this.http.delete(`${this.baseUrl}/${entryId}/tags/${tagId}`);
-  }
-
-  constructor() {
-    // reducers
-    merge(this.entryAdded$, this.entryEdited$, this.entryRemoved$)
-      .pipe(
-        startWith(null),
-        switchMap(() =>
-          this.http.get<PaginatedList<EntryBrief>>(this.baseUrl, {
-            params: {
-              pageNumber: Math.floor(1),
-              pageSize: Math.floor(50),
-            },
-          }),
-        ),
-        takeUntilDestroyed(),
-      )
-      .subscribe((entriesPaginated) =>
-        this.state.update(state => ({
-            ...state,
-            entriesPaginated: entriesPaginated,
-            loaded: true,
-          }),
-        ),
-      );
   }
 
   private handleError(error: any) {

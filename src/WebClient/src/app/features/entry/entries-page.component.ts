@@ -23,8 +23,8 @@ import { DataTableComponent } from '../../shared/components/data-table.component
       <div class="flex justify-between items-center">
         <h2 class="text-alpha-81">Manage Entries</h2>
 
-        <button type="button" (click)="selectedEntryId$.next('new')"
-                class="text-alpha-81 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-3  py-2 text-center inline-flex items-center me-2 my-4 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+        <button (click)="selectedEntryId$.next('new')"
+                class="text-alpha-81 focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-3  py-2 text-center inline-flex items-center me-2 my-4 bg-blue-600 hover:bg-blue-700 focus:ring-blue-800">
           <i class="fa-solid fa-plus mr-2 text-2xl mb-1"></i>
           Add Entry
         </button>
@@ -39,8 +39,12 @@ import { DataTableComponent } from '../../shared/components/data-table.component
           { header: 'Description', key: 'description' }
         ]"
         [items]="entryService.entries()"
-        (edit)="selectedEntryId$.next($event.id)"
-        (remove)="entryService.remove$.next($event.id)"
+        [pagination]="entryService.pagination()"
+        [pageSize]="this.entryService.pageSize$.value"
+        (edit)="selectedEntryId$.next($event)"
+        (remove)="entryService.remove$.next($event)"
+        (pageSizeChange)="entryService.pageSize$.next($event)"
+        (pageChange)="entryService.page$.next($event)"
       />
     </div>
   `,

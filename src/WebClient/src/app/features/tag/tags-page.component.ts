@@ -45,8 +45,12 @@ import { DataTableComponent } from '../../shared/components/data-table.component
           { header: 'Edited', key: 'lastModified', cellTemplate: dateTemplate }
         ]"
         [items]="tagService.tags()"
-        (edit)="selectedTagId$.next($event.id)"
-        (remove)="tagService.remove$.next($event.id)"
+        [pagination]="tagService.pagination()"
+        [pageSize]="tagService.pageSize$.value"
+        (edit)="selectedTagId$.next($event)"
+        (remove)="tagService.remove$.next($event)"
+        (pageChange)="tagService.page$.next($event)"
+        (pageSizeChange)="tagService.pageSize$.next($event)"
       />
 
       <ng-template #parentTagsTemplate let-tag>
