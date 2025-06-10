@@ -7,12 +7,12 @@
     <Project Path="src/AppHost/AppHost.csproj" />
     <Project Path="src/ServiceDefaults/ServiceDefaults.csproj" />
     <Project Path="src/WebApi/WebApi.csproj" />
-    <Project Path="src\Identity\Identity.csproj" Type="Classic C#" />
-    <Project Path="src\Shared\Shared.csproj" Type="Classic C#" />
-    <Project Path="src\Tags\Tags.csproj" Type="Classic C#" />
+    <Project Path="src\Identity\Identity.csproj" Type="C#" />
+    <Project Path="src\Shared\Shared.csproj" Type="C#" />
+    <Project Path="src\Tags\Tags.csproj" Type="C#" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests\WebApi.FunctionalTests\WebApi.FunctionalTests.csproj" Type="Classic C#" />
-    <Project Path="tests\WebApi.Tests\WebApi.Tests.csproj" Type="Classic C#" />
+    <Project Path="tests\WebApi.FunctionalTests\WebApi.FunctionalTests.csproj" Type="C#" />
+    <Project Path="tests\WebApi.Tests\WebApi.Tests.csproj" Type="C#" />
   </Folder>
 </Solution>

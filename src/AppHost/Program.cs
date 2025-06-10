@@ -7,9 +7,20 @@ var sqlServer = builder.AddSqlServer("sqlserver")
 
 var db = sqlServer.AddDatabase("database");
 
+var storage = builder.AddAzureStorage("storage")
+    .RunAsEmulator(resourceBuilder =>
+    {
+        resourceBuilder.WithLifetime(ContainerLifetime.Persistent);
+        resourceBuilder.WithDataVolume();
+    });
+
+var blob = storage.AddBlobs("blob");
+
 var webApi = builder.AddProject<WebApi>("webapi")
     .WithReference(db)
-    .WaitFor(db);
+    .WaitFor(db)
+    .WithReference(blob)
+    .WaitFor(blob);
 
 builder.AddNpmApp("webapp", "../WebClient")
     .WithReference(webApi)
