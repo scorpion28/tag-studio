@@ -7,6 +7,7 @@ namespace TagStudio.Tags.Common.Mapping;
 [Mapper(RequiredMappingStrategy = RequiredMappingStrategy.Target)]
 public static partial class EntryMapper
 {
+    [MapperIgnoreTarget(nameof(EntryDetailedDto.ImageUrl))]
     public static partial EntryDetailedDto ToEntryDetailedDto(this Entry tag);
     
     public static partial IQueryable<EntryBriefDto> ProjectToEntryBriefDto(this IQueryable<Entry> query);
