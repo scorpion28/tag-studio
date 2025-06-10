@@ -17,6 +17,9 @@ public class Entry : BaseAuditableEntity
     
     [MaxLength(1000)]
     public string? Description { get; set; }
+    
+    [MaxLength(100)]
+    public string? ImageFileName { get; set; }
 
     public List<Tag> Tags { get; init; } = [];
 }
