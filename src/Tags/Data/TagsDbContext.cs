@@ -1,9 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using TagStudio.Shared.Repository;
 using TagStudio.Tags.Domain;
 
 namespace TagStudio.Tags.Data;
 
-public class TagsDbContext(DbContextOptions<TagsDbContext> options) : DbContext(options)
+public class TagsDbContext(DbContextOptions<TagsDbContext> options) : DbContext(options), IUnitOfWork
 {
     public DbSet<Tag> Tags { get; set; }
     public DbSet<Entry> Entries { get; set; }

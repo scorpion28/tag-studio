@@ -4,7 +4,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using TagStudio.Tags.Data;
 using TagStudio.Tags.Data.Interceptors;
+using TagStudio.Tags.Domain;
 using TagStudio.Tags.Infrastructure.Blob;
+using TagStudio.Tags.Infrastructure.Repositories;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
@@ -27,6 +29,8 @@ public static class DependencyInjection
         // Blob storage
         builder.AddAzureBlobServiceClient("blob");
         builder.Services.AddSingleton<IBlobService, BlobStorageService>();
+        
+        services.AddScoped<IEntryRepository, EntryRepository>();
 
         return services;
     }
