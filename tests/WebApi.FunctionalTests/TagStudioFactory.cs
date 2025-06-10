@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Respawn;
@@ -12,6 +13,7 @@ using TagStudio.Identity.Data;
 using TagStudio.Identity.Domain;
 using TagStudio.Identity.Features;
 using TagStudio.Tags.Data;
+using Testcontainers.Azurite;
 using Testcontainers.MsSql;
 
 namespace TagStudio.WebApi.FunctionalTests;
@@ -20,7 +22,10 @@ namespace TagStudio.WebApi.FunctionalTests;
 public class TagStudioFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     private readonly MsSqlContainer _dbContainer = new MsSqlBuilder().Build();
-
+    private readonly AzuriteContainer _azurite = new AzuriteBuilder()
+        .WithImage("mcr.microsoft.com/azure-storage/azurite:3.34.0")
+        .Build();
+    
     private Respawner _respawner = null!;
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -35,6 +40,10 @@ public class TagStudioFactory : WebApplicationFactory<Program>, IAsyncLifetime
             {
                 options.UseSqlServer(_dbContainer.GetConnectionString());
             });
+            services.AddAzureClients(azureBuilder =>
+            {
+                azureBuilder.AddBlobServiceClient(_azurite.GetConnectionString());
+            });
         });
 
         builder.ConfigureLogging(logging => { logging.ClearProviders(); });
@@ -42,19 +51,23 @@ public class TagStudioFactory : WebApplicationFactory<Program>, IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        await _dbContainer.StartAsync();
-
+        var startMsSql = _dbContainer.StartAsync();
+        var startAzurite = _azurite.StartAsync();
+        
+        await startMsSql;
         await MigrateDatabasesAsync();
-
         _respawner = await Respawner.CreateAsync(_dbContainer.GetConnectionString(), new RespawnerOptions
         {
             TablesToIgnore = ["__EFMigrationsHistory"]
         });
+        
+        await startAzurite;
     }
 
     public new async Task DisposeAsync()
     {
         await _dbContainer.DisposeAsync();
+        await _azurite.DisposeAsync();
     }
 
     public async Task<AppUser> CreateUserAsync(Guid userId = new(), string? email = null, string? password = null)
@@ -104,7 +117,7 @@ public class TagStudioFactory : WebApplicationFactory<Program>, IAsyncLifetime
             .ConfigureWarnings(warnings => warnings.Log(RelationalEventId.PendingModelChangesWarning))
             .Options;
         var tagsContext = new TagsDbContext(tagsDbContextOptions);
-        
+
         await tagsContext.Database.MigrateAsync();
 
         var usersDbContextOptions = new DbContextOptionsBuilder<UsersDbContext>()
