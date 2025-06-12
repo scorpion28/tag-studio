@@ -8,6 +8,7 @@ import { ModalWrapperComponent } from '../../../shared/components/modal-wrapper/
 import { rxResource } from '@angular/core/rxjs-interop';
 import { TagListComponent } from '../../tag/tag-list.component';
 import { CreateEntry, EditEntry } from '../models/entry.model';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-entry-form',
@@ -22,9 +23,10 @@ import { CreateEntry, EditEntry } from '../models/entry.model';
 })
 export class EntryFormComponent {
   entryId = input<string>('');
-  close = output<CreateEntry | EditEntry | null>();
+  save = output<CreateEntry | EditEntry | null>();
 
-  entryService = inject(EntryService);
+  private entryService = inject(EntryService);
+  private http = inject(HttpClient);
 
   isEditMode = computed(() => !!this.entryId());
   tagPickerVisible = signal(false);
@@ -47,8 +49,18 @@ export class EntryFormComponent {
   description = linkedSignal(() => this.entry()?.description ?? undefined);
   tags = linkedSignal(() => this.entry()?.tags ?? []);
 
-  onFormClose() {
-    this.close.emit(this.formatData());
+  onClose() {
+    this.save.emit(this.formatData());
+  }
+
+  onImageSelected(event: Event): void {
+    this.imagePickerVisible.set(false);
+    const input = event.target as HTMLInputElement;
+
+    if (input.files && input.files.length > 0) {
+      const image = input.files[0];
+      this.sendImage(image);
+    }
   }
 
   formatData() {
@@ -95,6 +107,17 @@ export class EntryFormComponent {
         .subscribe(_ => this.tags.update(tags => [...tags, tag]));
     } else {
       this.tags.update((tags) => [...tags, tag]);
+    }
+  }
+
+  sendImage(image: File): void {
+    if (image) {
+      const formData = new FormData();
+
+      formData.append('file', image);
+
+      this.http.post(`/api/entries/${this.entry()?.id}/image`, formData)
+        .subscribe(() => this.entryLoaded.reload());
     }
   }
 }

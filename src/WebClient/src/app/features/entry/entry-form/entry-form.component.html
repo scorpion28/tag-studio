@@ -1,7 +1,22 @@
-<app-modal-wrapper (close)="onFormClose()">
+<app-modal-wrapper (close)="onClose()">
   <div>
     <input type="text" [(ngModel)]="name" placeholder="New Entry"
            class="text-alpha-81 text-4xl rounded-lg block w-full pb-5 placeholder-gray-500 font-bold opacity-80 outline-0">
+  </div>
+
+  <!-- Entry image -->
+  <div class="m-auto">
+    <img class="max-w-48 max-h-48 cursor-pointer"
+         src="{{entry()?.imageUrl ?? '/placeholder.svg'}}"
+         (click)="imagePickerVisible.set(true)" alt="" />
+
+    @if (imagePickerVisible()) {
+      <div>
+        <div class="bg-yellow-50 size-10"></div>
+        <input type="file" (change)="onImageSelected($event)" accept="image/*" />
+      </div>
+    }
+
   </div>
 
   <div role="table" class="text-sm text-alpha-46">

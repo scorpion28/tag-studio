@@ -6,6 +6,7 @@ export interface Entry {
 
   name: string;
   description?: string;
+  imageUrl?: string;
 
   tags: TagBrief[];
 
@@ -26,11 +27,8 @@ export function toEntryModel(entryDto: EntryDetailed): Entry {
   const lastModifiedDate = new Date(entryDto.lastModified);
 
   return {
-    id: entryDto.id,
-    name: entryDto.name,
-    description: entryDto.description,
-    tags: entryDto.tags,
+    ...entryDto,
     created: createdDate,
-    lastModified: lastModifiedDate,
+    lastModified: lastModifiedDate
   };
 }

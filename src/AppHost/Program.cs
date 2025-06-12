@@ -3,7 +3,8 @@ using Projects;
 var builder = DistributedApplication.CreateBuilder(args);
 
 var sqlServer = builder.AddSqlServer("sqlserver")
-    .WithLifetime(ContainerLifetime.Persistent);
+    .WithLifetime(ContainerLifetime.Persistent)
+    .WithDataVolume();
 
 var db = sqlServer.AddDatabase("database");
 
@@ -25,7 +26,7 @@ var webApi = builder.AddProject<WebApi>("webapi")
 builder.AddNpmApp("webapp", "../WebClient")
     .WithReference(webApi)
     .WaitFor(webApi)
-    .WithHttpEndpoint(env: "PORT")
+    .WithHttpEndpoint(targetPort: 5015, isProxied: false)
     .WithExternalHttpEndpoints()
     .PublishAsDockerFile();
 

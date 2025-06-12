@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { TopBarComponent } from '../../core/layout/top-bar/top-bar.component';
 import { ActivatedRoute, Router } from '@angular/router';
 import { EntryService } from './services/entry.service';
@@ -23,14 +23,15 @@ import { DataTableComponent } from '../../shared/components/data-table.component
       <div class="flex justify-between items-center">
         <h2 class="text-alpha-81">Manage Entries</h2>
 
-        <button (click)="selectedEntryId$.next('new')"
+        <button (click)="selectEntry$.next('new')"
                 class="text-alpha-81 focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-3  py-2 text-center inline-flex items-center me-2 my-4 bg-blue-600 hover:bg-blue-700 focus:ring-blue-800">
           <i class="fa-solid fa-plus mr-2 text-2xl mb-1"></i>
           Add Entry
         </button>
       </div>
-      @if (this.queryParams()?.['selected']; as entryId) {
-        <app-entry-form [entryId]="entryId === 'new' ? '' : entryId" (close)="handleFormOutput($event)" />
+      @if (selectedEntry()) {
+        <app-entry-form [entryId]="selectedEntry() === 'new' ? '' : selectedEntry()"
+                        (save)="handleFormOutput($event)" />
       }
 
       <app-data-table
@@ -41,7 +42,7 @@ import { DataTableComponent } from '../../shared/components/data-table.component
         [items]="entryService.entries()"
         [pagination]="entryService.pagination()"
         [pageSize]="this.entryService.pageSize$.value"
-        (edit)="selectedEntryId$.next($event)"
+        (edit)="selectEntry$.next($event)"
         (remove)="entryService.remove$.next($event)"
         (pageSizeChange)="entryService.pageSize$.next($event)"
         (pageChange)="entryService.page$.next($event)"
@@ -54,12 +55,13 @@ export class EntriesPageComponent {
   private router = inject(Router);
   entryService = inject(EntryService);
 
-  selectedEntryId$ = new Subject<string | null>();
+  private queryParams = toSignal(this.route.queryParams);
+  selectedEntry = computed(() => this.queryParams()?.['selected'] as string ?? '');
 
-  queryParams = toSignal(this.route.queryParams);
+  selectEntry$ = new Subject<string | null>();
 
   handleFormOutput(entryData: CreateEntry | EditEntry | null) {
-    this.selectedEntryId$.next(null);
+    this.selectEntry$.next(null);
 
     if (!entryData) return;
     if ('data' in entryData) {
@@ -70,7 +72,7 @@ export class EntriesPageComponent {
   }
 
   constructor() {
-    this.selectedEntryId$
+    this.selectEntry$
       .pipe(takeUntilDestroyed())
       .subscribe(id =>
         this.router.navigate([], {
