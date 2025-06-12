@@ -6,7 +6,8 @@
 <!-- Entry image -->
 <div class="m-auto">
   <img class="max-w-48 max-h-48 cursor-pointer"
-       src="{{entry()?.imageUrl ?? '/placeholder.svg'}}" />
+       src="{{entry()?.imageUrl ?? '/placeholder.svg'}}"
+       (click)="imagePickerVisible.set(true)" alt="" />
 </div>
 
 <div role="table" class="text-sm text-alpha-46">
@@ -40,3 +41,9 @@
   (tagAdded)="addEntryTag($event)"
   (tagRemoved)="removeEntryTag($event)"
   (close)="tagPickerVisible.set(false)" />
+
+<app-image-picker
+  [isVisible]="imagePickerVisible()"
+  (selectImage)="onImageSelected($event)"
+  (removeImage)="onImageRemove()"
+  (close)="imagePickerVisible.set(false)" />

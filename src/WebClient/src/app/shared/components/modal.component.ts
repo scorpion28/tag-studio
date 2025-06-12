@@ -10,7 +10,7 @@ import { ReactiveFormsModule } from '@angular/forms';
     @if (isOpen()) {
       <div class="modal-overlay"
            [style.background-color]="hasBackdrop() ? 'rgba(0, 0, 0, 0.7)' : 'unset'"
-           [style.z-index]="layer()"
+           [style.z-index]="layer() ?? 1"
            (click)="close.emit()">
         <div class="{{contentClass()}}" (click)="$event.stopPropagation()">
           <ng-content />

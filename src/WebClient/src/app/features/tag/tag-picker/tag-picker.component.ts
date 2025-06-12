@@ -48,7 +48,6 @@ import { ModalComponent } from '../../../shared/components/modal.component';
         </div>
       </div>
     </app-modal>
-
   `
 })
 export class TagPickerComponent {

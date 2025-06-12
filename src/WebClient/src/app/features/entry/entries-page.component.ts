@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { TopBarComponent } from '../../core/layout/top-bar/top-bar.component';
 import { ActivatedRoute, Router } from '@angular/router';
 import { EntryService } from './services/entry.service';

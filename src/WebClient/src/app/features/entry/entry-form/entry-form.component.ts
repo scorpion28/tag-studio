@@ -8,6 +8,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { TagListComponent } from '../../tag/tag-list.component';
 import { CreateEntry, EditEntry } from '../models/entry.model';
 import { HttpClient } from '@angular/common/http';
+import { ImagePickerComponent } from './ui/image-picker.component';
 
 @Component({
   selector: 'app-entry-form',
@@ -16,6 +17,7 @@ import { HttpClient } from '@angular/common/http';
     FormsModule,
     TagPickerComponent,
     TagListComponent,
+    ImagePickerComponent,
   ],
   templateUrl: './entry-form.component.html',
 })
@@ -28,6 +30,7 @@ export class EntryFormComponent {
 
   isEditMode = computed(() => !!this.entryId());
   tagPickerVisible = signal(false);
+  imagePickerVisible = signal(false);
 
   entryLoaded = rxResource({
     params: () => ({
@@ -59,6 +62,12 @@ export class EntryFormComponent {
       const image = input.files[0];
       this.sendImage(image);
     }
+  }
+
+  onImageRemove() {
+    this.imagePickerVisible.set(false);
+
+    this.removeImage();
   }
 
   formatData() {
@@ -115,6 +124,13 @@ export class EntryFormComponent {
       formData.append('file', image);
 
       this.http.post(`/api/entries/${this.entry()?.id}/image`, formData)
+        .subscribe(() => this.entryLoaded.reload());
+    }
+  }
+
+  removeImage() {
+    if (this.isEditMode() && this.entry()?.imageUrl) {
+      this.http.delete(`/api/entries/${this.entry()?.id}/image`)
         .subscribe(() => this.entryLoaded.reload());
     }
   }
