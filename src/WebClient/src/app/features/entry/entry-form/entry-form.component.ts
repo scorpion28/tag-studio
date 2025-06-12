@@ -4,7 +4,6 @@ import { EMPTY } from 'rxjs';
 import { EntryService } from '../services/entry.service';
 import { TagBrief } from '../../tag/models/tag-brief.model';
 import { TagPickerComponent } from '../../tag/tag-picker/tag-picker.component';
-import { ModalWrapperComponent } from '../../../shared/components/modal-wrapper/modal-wrapper';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { TagListComponent } from '../../tag/tag-list.component';
 import { CreateEntry, EditEntry } from '../models/entry.model';
@@ -16,7 +15,6 @@ import { HttpClient } from '@angular/common/http';
   imports: [
     FormsModule,
     TagPickerComponent,
-    ModalWrapperComponent,
     TagListComponent,
   ],
   templateUrl: './entry-form.component.html',

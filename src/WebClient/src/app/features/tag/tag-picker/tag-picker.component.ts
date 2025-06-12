@@ -3,16 +3,23 @@ import { TagBrief } from '../models/tag-brief.model';
 import { TagService } from '../services/tag.service';
 import { map } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { ModalComponent } from '../../../shared/components/modal.component';
 
 @Component({
   selector: 'app-tag-picker',
   standalone: true,
-  imports: [],
-  styleUrl: "tag-picker.component.css",
+  imports: [
+    ModalComponent,
+  ],
   template: `
-    <div class="tag-picker-modal" (click)="closePicker()">
-      <div class="picker-content text-white bg-neutral-600 rounded-md" (click)="$event.stopPropagation()"
-           style="background-color: rgb(37, 37, 37); max-width: 672px;">
+    <app-modal
+      [isOpen]="isVisible()"
+      [layer]="3"
+      [hasBackdrop]="false"
+      [contentClass]="'max-w-2xl w-[80%] my-[15%] mx-auto p-5'"
+      (close)="close.emit()"
+    >
+      <div class="w-full bg-dark-gray-750 text-alpha-87 rounded-md">
         <div class="flex flex-wrap items-center bg-neutral-700 p-2 rounded-md gap-1.5"
              style="background-color: rgba(255, 255, 255, 0.03);">
           @for (tag of selectedTags(); track tag.id) {
@@ -20,7 +27,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
               <span class="whitespace-nowrap">{{ tag.name }}</span>
               <button type="button" (click)="onTagUnselected(tag)"
                       class="ml-1 text-gray-200 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50">
-                <svg class="h-3 w-3 hover:bg-neutral-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg class="h-3 w-3 hover:bg-neutral-600" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
@@ -29,7 +36,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
           <input class="outline-0" type="text">
         </div>
         <div class="p-2">
-          <p class="text-xs font-medium px-1" style="color: rgba(255, 255, 255, 0.46)">Select an option or create
+          <p class="text-xs font-medium px-1 text-alpha-46">Select an option or create
             one</p>
           <div>
             @for (tag of availableTags(); track tag.id) {
@@ -40,25 +47,22 @@ import { toSignal } from '@angular/core/rxjs-interop';
           </div>
         </div>
       </div>
-    </div>
+    </app-modal>
+
   `
 })
 export class TagPickerComponent {
   selectedTags = input.required<TagBrief[]>();
+  isVisible = input.required<boolean>();
+  close = output();
 
   tagAdded = output<TagBrief>();
   tagRemoved = output<TagBrief>();
 
-  close = output();
-
   private tagService = inject(TagService);
 
-  closePicker() {
-    this.close.emit();
-  }
-
   private readonly allTags$ = this.tagService.getTags().pipe(
-    map(list => list.items)
+    map(list => list.items),
   );
   private readonly allTags = toSignal(this.allTags$, { initialValue: [] });
 
@@ -71,7 +75,7 @@ export class TagPickerComponent {
     }
 
     return all.filter(
-      (tag) => !selected.some((selectedTag) => selectedTag.id === tag.id)
+      (tag) => !selected.some((selectedTag) => selectedTag.id === tag.id),
     );
   });
 

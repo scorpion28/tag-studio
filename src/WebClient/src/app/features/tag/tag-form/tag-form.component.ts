@@ -5,7 +5,6 @@ import { EMPTY } from 'rxjs';
 import { TagPickerComponent } from '../tag-picker/tag-picker.component';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { TagService } from '../services/tag.service';
-import { ModalWrapperComponent } from '../../../shared/components/modal-wrapper/modal-wrapper';
 import { TagListComponent } from '../tag-list.component';
 import { CreateTag, EditTag } from '../models/tag.model';
 
@@ -15,14 +14,13 @@ import { CreateTag, EditTag } from '../models/tag.model';
   imports: [
     FormsModule,
     TagPickerComponent,
-    ModalWrapperComponent,
     TagListComponent,
   ],
   templateUrl: './tag-form.component.html',
 })
 export class TagFormComponent {
   tagId = input<string>('');
-  close = output<CreateTag | EditTag | null>();
+  save = output<CreateTag | EditTag | null>();
 
   tagService = inject(TagService);
 
@@ -52,8 +50,8 @@ export class TagFormComponent {
   tagName = linkedSignal(() => this.tag()?.name ?? '');
   parentTags = linkedSignal(() => this.tag()?.parents ?? []);
 
-  onFormClose() {
-    this.close.emit(this.formatData());
+  onSave() {
+    this.save.emit(this.formatData());
   }
 
   formatData(): CreateTag | EditTag | null {

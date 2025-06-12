@@ -7,6 +7,7 @@ import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { Subject } from 'rxjs';
 import { CreateEntry, EditEntry } from './models/entry.model';
 import { DataTableComponent } from '../../shared/components/data-table.component';
+import { ModalComponent } from '../../shared/components/modal.component';
 
 @Component({
   selector: 'app-entries-page',
@@ -15,6 +16,7 @@ import { DataTableComponent } from '../../shared/components/data-table.component
     TopBarComponent,
     EntryFormComponent,
     DataTableComponent,
+    ModalComponent,
   ],
   template: `
     <top-bar [pageTitle]="'Entries'" />
@@ -29,10 +31,6 @@ import { DataTableComponent } from '../../shared/components/data-table.component
           Add Entry
         </button>
       </div>
-      @if (selectedEntry()) {
-        <app-entry-form [entryId]="selectedEntry() === 'new' ? '' : selectedEntry()"
-                        (save)="handleFormOutput($event)" />
-      }
 
       <app-data-table
         [columns]="[
@@ -48,6 +46,12 @@ import { DataTableComponent } from '../../shared/components/data-table.component
         (pageChange)="entryService.page$.next($event)"
       />
     </div>
+
+    <app-modal (close)="entryForm.onClose()" [isOpen]="!!selectedEntry()">
+      <app-entry-form #entryForm
+                      [entryId]="selectedEntry() === 'new' ? '' : selectedEntry()"
+                      (save)="handleFormOutput($event)" />
+    </app-modal>
   `,
 })
 export class EntriesPageComponent {
