@@ -9,6 +9,8 @@ public static partial class EntryMapper
 {
     [MapperIgnoreTarget(nameof(EntryDetailedDto.ImageUrl))]
     public static partial EntryDetailedDto ToEntryDetailedDto(this Entry tag);
+
+    public static partial IQueryable<EntryDetailedDto> ProjectToEntryDetailedDto(this IQueryable<Entry> query);
     
     public static partial IQueryable<EntryBriefDto> ProjectToEntryBriefDto(this IQueryable<Entry> query);
 }

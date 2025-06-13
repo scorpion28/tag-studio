@@ -15,13 +15,12 @@ import {
 } from 'rxjs';
 import { PaginatedList } from '../../../shared/models/paginated-list';
 import { CreateEntry, EditEntry, Entry, RemoveEntry, toEntryModel } from '../models/entry.model';
-import { EntryBrief } from '../models/entry-brief.model';
 import { EntryDetailed } from '../models/entry-detailed.model';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PaginationInfo } from '../../../shared/models/pagination';
 
 interface EntriesState {
-  entriesPaginated: PaginatedList<EntryBrief>;
+  entriesPaginated: PaginatedList<Entry>;
   loading: boolean;
   error: string | null;
 }
@@ -124,13 +123,18 @@ export class EntryService {
       .subscribe(() => this.page$.next(1));
   }
 
-  private getEntries(page: number, pageSize: number): Observable<PaginatedList<EntryBrief>> {
-    return this.http.get<PaginatedList<EntryBrief>>(this.baseUrl, {
+  private getEntries(page: number, pageSize: number): Observable<PaginatedList<Entry>> {
+    return this.http.get<PaginatedList<EntryDetailed>>(this.baseUrl, {
       params: {
         pageNumber: Math.floor(page),
         pageSize: Math.floor(pageSize),
       },
-    });
+    }).pipe(
+      map(list => ({
+        ...list,
+        items: list.items.map(tagDto => toEntryModel(tagDto)),
+      })),
+    );
   }
 
   getEntryById(id: string): Observable<Entry> {

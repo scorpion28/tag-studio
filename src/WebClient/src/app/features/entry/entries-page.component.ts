@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { TopBarComponent } from '../../core/layout/top-bar/top-bar.component';
 import { ActivatedRoute, Router } from '@angular/router';
 import { EntryService } from './services/entry.service';
@@ -8,6 +8,10 @@ import { Subject } from 'rxjs';
 import { CreateEntry, EditEntry } from './models/entry.model';
 import { DataTableComponent } from '../../shared/components/data-table.component';
 import { ModalComponent } from '../../shared/components/modal.component';
+import { EntriesGridComponent } from './entry-grid/entry-grid.component';
+import { EntriesPageHeaderComponent } from './ui/entry-page-header.component';
+
+export type EntriesPageMode = 'table' | 'grid';
 
 @Component({
   selector: 'app-entries-page',
@@ -17,37 +21,42 @@ import { ModalComponent } from '../../shared/components/modal.component';
     EntryFormComponent,
     DataTableComponent,
     ModalComponent,
+    EntriesGridComponent,
+    EntriesPageHeaderComponent,
   ],
   template: `
     <top-bar [pageTitle]="'Entries'" />
 
-    <div class="container w-full my-10">
-      <div class="flex justify-between items-center">
-        <h2 class="text-alpha-81">Manage Entries</h2>
+    <div class="container w-full my-10 px-10">
+      <app-entries-page-header
+        [viewMode]="viewMode()"
+        (addEntry)="selectEntry$.next('new')"
+        (viewModeSelect)="viewMode.set($event)" />
 
-        <button (click)="selectEntry$.next('new')"
-                class="text-alpha-81 focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-3  py-2 text-center inline-flex items-center me-2 my-4 bg-blue-600 hover:bg-blue-700 focus:ring-blue-800">
-          <i class="fa-solid fa-plus mr-2 text-2xl mb-1"></i>
-          Add Entry
-        </button>
-      </div>
-
-      <app-data-table
-        [columns]="[
+      @if (viewMode() === 'grid') {
+        <app-entries-grid
+          [entries]="entryService.entries()"
+          (entrySelected)="selectEntry$.next($event)" />
+      } @else {
+        <app-data-table
+          [columns]="[
           { header: 'Name', key: 'name' },
           { header: 'Description', key: 'description' }
         ]"
-        [items]="entryService.entries()"
-        [pagination]="entryService.pagination()"
-        [pageSize]="this.entryService.pageSize$.value"
-        (edit)="selectEntry$.next($event)"
-        (remove)="entryService.remove$.next($event)"
-        (pageSizeChange)="entryService.pageSize$.next($event)"
-        (pageChange)="entryService.page$.next($event)"
-      />
+          [items]="entryService.entries()"
+          [pagination]="entryService.pagination()"
+          [pageSize]="this.entryService.pageSize$.value"
+          (edit)="selectEntry$.next($event)"
+          (remove)="entryService.remove$.next($event)"
+          (pageSizeChange)="entryService.pageSize$.next($event)"
+          (pageChange)="entryService.page$.next($event)"
+        />
+      }
     </div>
 
-    <app-modal (close)="entryForm.onClose()" [isOpen]="!!selectedEntry()">
+    <app-modal
+      (close)="entryForm.onClose()"
+      [isOpen]="!!selectedEntry()">
       <app-entry-form #entryForm
                       [entryId]="selectedEntry() === 'new' ? '' : selectedEntry()"
                       (save)="handleFormOutput($event)" />
@@ -59,8 +68,10 @@ export class EntriesPageComponent {
   private router = inject(Router);
   entryService = inject(EntryService);
 
+
   private queryParams = toSignal(this.route.queryParams);
   selectedEntry = computed(() => this.queryParams()?.['selected'] as string ?? '');
+  viewMode = signal<'grid' | 'table'>('grid');
 
   selectEntry$ = new Subject<string | null>();
 

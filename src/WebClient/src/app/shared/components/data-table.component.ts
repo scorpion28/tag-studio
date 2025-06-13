@@ -80,5 +80,4 @@ export class DataTableComponent {
 
   pageChange = output<number>();
   pageSizeChange = output<number>();
-  protected readonly console = console;
 }

@@ -1,4 +1,6 @@
-﻿namespace TagStudio.Tags.Common.Models;
+﻿using System.Text.Json.Serialization;
+
+namespace TagStudio.Tags.Common.Models;
 
 public class EntryDetailedDto
 {
@@ -8,6 +10,9 @@ public class EntryDetailedDto
     public string? Description { get; set; }
     
     public string? ImageUrl { get; set; }
+    
+    [JsonIgnore]
+    public string? ImageFileName { get; set; }
     
     public List<TagBriefDto>? Tags { get; set; }
 
