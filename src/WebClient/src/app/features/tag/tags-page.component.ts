@@ -11,30 +11,30 @@ import { CreateTag, EditTag } from './models/tag.model';
 import { Subject } from 'rxjs';
 import { DataTableComponent } from '../../shared/components/data-table.component';
 import { ModalComponent } from '../../shared/components/modal.component';
+import { PaginationComponent } from '../../shared/components/pagination.component';
 
 @Component({
   selector: 'app-tags-page',
   standalone: true,
-  imports: [FormsModule, TopBarComponent, TagFormComponent, DatePipe, TagListComponent, DataTableComponent, ModalComponent],
+  imports: [FormsModule, TopBarComponent, TagFormComponent, DatePipe, TagListComponent, DataTableComponent, ModalComponent, PaginationComponent],
   template: `
     <top-bar [pageTitle]="'Tags'" />
 
-    <div class="container w-full my-10">
+    <div class="container w-full my-10 px-10">
       <div class="flex justify-between items-center  text-alpha-81">
         <h2>Manage Tags</h2>
 
-        <button type="button" (click)="selectTag$.next('new')"
-                class="focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-3  py-2 text-center
-                inline-flex items-center me-2 my-4 bg-blue-600 hover:bg-blue-700 focus:ring-blue-800">
-          <i class="fa-solid fa-plus mr-2 text-2xl mb-1"></i>
+        <button (click)="selectTag$.next('new')"
+                class="text-alpha-81 text-sm font-semibold px-3  py-2 focus:ring-4 rounded-lg inline-flex me-2 my-4
+                bg-blue-600 hover:bg-blue-700 focus:ring-blue-800">
           Add Tag
         </button>
       </div>
+
       <app-modal [isOpen]="!!this.selectedTag()" (close)="tagForm.onSave()">
         <app-tag-form #tagForm
                       [tagId]="this.selectedTag() === 'new' ? '' : this.selectedTag()"
-                      (save)="handleFormOutput($event)"
-        />
+                      (save)="handleFormOutput($event)" />
       </app-modal>
 
       <app-data-table
@@ -46,10 +46,14 @@ import { ModalComponent } from '../../shared/components/modal.component';
           { header: 'Edited', key: 'lastModified', cellTemplate: dateTemplate }
         ]"
         [items]="tagService.tags()"
-        [pagination]="tagService.pagination()"
-        [pageSize]="tagService.pageSize$.value"
         (edit)="selectTag$.next($event)"
         (remove)="tagService.remove$.next($event)"
+      />
+
+      <app-pagination
+        [pagination]="tagService.pagination()"
+        [itemsCount]="tagService.tags().length"
+        [pageSize]="tagService.pageSize$.value"
         (pageChange)="tagService.page$.next($event)"
         (pageSizeChange)="tagService.pageSize$.next($event)"
       />

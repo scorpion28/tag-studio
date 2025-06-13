@@ -10,6 +10,7 @@ import { DataTableComponent } from '../../shared/components/data-table.component
 import { ModalComponent } from '../../shared/components/modal.component';
 import { EntriesGridComponent } from './entry-grid/entry-grid.component';
 import { EntriesPageHeaderComponent } from './ui/entry-page-header.component';
+import { PaginationComponent } from '../../shared/components/pagination.component';
 
 export type EntriesPageMode = 'table' | 'grid';
 
@@ -23,6 +24,7 @@ export type EntriesPageMode = 'table' | 'grid';
     ModalComponent,
     EntriesGridComponent,
     EntriesPageHeaderComponent,
+    PaginationComponent,
   ],
   template: `
     <top-bar [pageTitle]="'Entries'" />
@@ -44,14 +46,16 @@ export type EntriesPageMode = 'table' | 'grid';
           { header: 'Description', key: 'description' }
         ]"
           [items]="entryService.entries()"
-          [pagination]="entryService.pagination()"
-          [pageSize]="this.entryService.pageSize$.value"
           (edit)="selectEntry$.next($event)"
-          (remove)="entryService.remove$.next($event)"
-          (pageSizeChange)="entryService.pageSize$.next($event)"
-          (pageChange)="entryService.page$.next($event)"
-        />
+          (remove)="entryService.remove$.next($event)" />
       }
+
+      <app-pagination
+        [pagination]="entryService.pagination()"
+        [itemsCount]="entryService.entries().length"
+        [pageSize]="entryService.pageSize$.value"
+        (pageChange)="entryService.page$.next($event)"
+        (pageSizeChange)="entryService.pageSize$.next($event)" />
     </div>
 
     <app-modal

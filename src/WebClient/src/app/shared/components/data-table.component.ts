@@ -1,8 +1,6 @@
 ﻿import { Component, input, output, TemplateRef } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
-import { PaginationInfo } from '../models/pagination';
 import { FormsModule } from '@angular/forms';
-import { TablePaginationComponent } from './table-pagination.component';
 
 export interface TableColumn {
   header: string;
@@ -52,32 +50,15 @@ export interface TableColumn {
           }
         </tbody>
       </table>
-
-      <!-- Pagination -->
-      <app-table-pagination
-        [pagination]="pagination()"
-        [itemsCount]="items().length"
-        [pageSize]="pageSize()"
-        (nextPage)="pageChange.emit(pagination().pageNumber + 1)"
-        (previousPage)="pageChange.emit(pagination().pageNumber - 1)"
-        (pageSizeChange)="pageSizeChange.emit($event)"
-      />
-
     </div>
 
   `,
-  imports: [NgTemplateOutlet, FormsModule, TablePaginationComponent],
+  imports: [NgTemplateOutlet, FormsModule],
 })
 export class DataTableComponent {
   columns = input.required<TableColumn[]>();
   items = input.required<any[]>();
-  pagination = input.required<PaginationInfo>();
-  pageSize = input.required<number>();
-  pageSizeOptions = input([10, 20, 50]);
 
   edit = output<string>();
   remove = output<string>();
-
-  pageChange = output<number>();
-  pageSizeChange = output<number>();
 }
