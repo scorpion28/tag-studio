@@ -12,6 +12,8 @@ import {
   startWith,
   Subject,
   switchMap,
+  tap,
+  throwError,
 } from 'rxjs';
 import { PaginatedList } from '../../../shared/models/paginated-list';
 import { CreateEntry, EditEntry, Entry, RemoveEntry, toEntryModel } from '../models/entry.model';
@@ -56,6 +58,7 @@ export class EntryService {
   remove$ = new Subject<RemoveEntry>();
   page$ = new BehaviorSubject<number>(1);
   pageSize$ = new BehaviorSubject<number>(10);
+  private refresh$ = new Subject<void>();
 
   private entryAdded$ = this.add$.pipe(
     concatMap(addEntry =>
@@ -91,7 +94,7 @@ export class EntryService {
         prev.page === curr.page && prev.pageSize == curr.pageSize),
     );
 
-  private entriesLoaded$ = merge(this.entryAdded$, this.entryEdited$, this.entryRemoved$)
+  private entriesLoaded$ = merge(this.entryAdded$, this.entryEdited$, this.entryRemoved$, this.refresh$)
     .pipe(
       startWith(null),
       switchMap(() => this.paginationUpdated$),
@@ -142,6 +145,17 @@ export class EntryService {
       .pipe(
         map(entryDto => toEntryModel(entryDto)),
       );
+  }
+
+  createEntry(entry: CreateEntry): Observable<Entry> {
+    return this.http.post<EntryDetailed>(this.baseUrl, entry).pipe(
+      map(entryDto => toEntryModel(entryDto)),
+      tap(() => this.refresh$.next()),
+      catchError(err => {
+        this.handleError(err);
+        return throwError(() => err);
+      }),
+    );
   }
 
   addTagsToEntry(entryId: string, tagIds: string[]) {

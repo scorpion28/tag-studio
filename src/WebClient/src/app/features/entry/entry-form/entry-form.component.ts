@@ -9,6 +9,7 @@ import { TagListComponent } from '../../tag/tag-list.component';
 import { CreateEntry, EditEntry } from '../models/entry.model';
 import { HttpClient } from '@angular/common/http';
 import { ImagePickerComponent } from './ui/image-picker.component';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-entry-form',
@@ -27,6 +28,7 @@ export class EntryFormComponent {
 
   private entryService = inject(EntryService);
   private http = inject(HttpClient);
+  private router = inject(Router);
 
   isEditMode = computed(() => !!this.entryId());
   tagPickerVisible = signal(false);
@@ -118,19 +120,35 @@ export class EntryFormComponent {
   }
 
   sendImage(image: File): void {
-    if (image) {
-      const formData = new FormData();
+    if (!image) return;
 
-      formData.append('file', image);
+    if (this.isEditMode()) {
+      this.uploadImage(this.entryId(), image);
+    } else {
+      const data = this.formatData() as CreateEntry;
+      if (!data) return;
 
-      this.http.post(`/api/entries/${this.entry()?.id}/image`, formData)
-        .subscribe(() => this.entryLoaded.reload());
+      this.entryService.createEntry(data).subscribe(newEntry => {
+        this.router.navigate([], {
+          queryParams: { selected: newEntry.id },
+          queryParamsHandling: 'merge',
+        });
+        this.uploadImage(newEntry.id, image);
+      });
     }
+  }
+
+  private uploadImage(entryId: string, image: File): void {
+    const formData = new FormData();
+    formData.append('file', image);
+
+    this.http.post(`/api/entries/${entryId}/image`, formData)
+      .subscribe(() => this.entryLoaded.reload());
   }
 
   removeImage() {
     if (this.isEditMode() && this.entry()?.imageUrl) {
-      this.http.delete(`/api/entries/${this.entry()?.id}/image`)
+      this.http.delete(`/api/entries/${this.entryId()}/image`)
         .subscribe(() => this.entryLoaded.reload());
     }
   }
