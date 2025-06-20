@@ -1,10 +1,12 @@
-﻿import { Component, input, output } from '@angular/core';
+﻿import { Component, contentChild, input, output, TemplateRef } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
+import { NgTemplateOutlet } from '@angular/common';
 
 @Component({
   selector: 'app-modal',
   imports: [
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    NgTemplateOutlet,
   ],
   template: `
     @if (isOpen()) {
@@ -13,7 +15,7 @@ import { ReactiveFormsModule } from '@angular/forms';
            [style.z-index]="layer() ?? 1"
            (click)="close.emit()">
         <div class="{{contentClass()}}" (click)="$event.stopPropagation()">
-          <ng-content />
+          <ng-container [ngTemplateOutlet]="template()"></ng-container>
         </div>
       </div>
     }
@@ -44,13 +46,14 @@ import { ReactiveFormsModule } from '@angular/forms';
       overflow-y: auto;
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     }
-  `
+  `,
 })
 export class ModalComponent {
   isOpen = input.required<boolean>();
+  template = contentChild.required(TemplateRef);
   hasBackdrop = input<boolean>(true);
   layer = input<number>(1);
-  contentClass = input<string>("default-modal-content");
+  contentClass = input<string>('default-modal-content');
 
   close = output();
 }

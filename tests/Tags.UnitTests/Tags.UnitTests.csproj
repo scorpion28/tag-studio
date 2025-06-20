@@ -29,7 +29,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Shared\Shared.csproj" />
     <ProjectReference Include="..\..\src\Tags\Tags.csproj" />
-    <ProjectReference Include="..\src\Tags\Tags.csproj" />
   </ItemGroup>
 
 </Project>

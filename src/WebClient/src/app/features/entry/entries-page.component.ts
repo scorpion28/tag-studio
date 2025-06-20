@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, viewChild } from '@angular/core';
 import { TopBarComponent } from '../../core/layout/top-bar/top-bar.component';
 import { ActivatedRoute, Router } from '@angular/router';
 import { EntryService } from './services/entry.service';
@@ -59,11 +59,13 @@ export type EntriesPageMode = 'table' | 'grid';
     </div>
 
     <app-modal
-      (close)="entryForm.onClose()"
+      (close)="entryForm()?.onClose()"
       [isOpen]="!!selectedEntry()">
-      <app-entry-form #entryForm
-                      [entryId]="selectedEntry() === 'new' ? '' : selectedEntry()"
-                      (save)="handleFormOutput($event)" />
+      <ng-template>
+        <app-entry-form #entryFormRef
+                        [entryId]="selectedEntry() === 'new' ? '' : selectedEntry()"
+                        (save)="handleFormOutput($event)" />
+      </ng-template>
     </app-modal>
   `,
 })
@@ -78,6 +80,7 @@ export class EntriesPageComponent {
   viewMode = signal<'grid' | 'table'>('grid');
 
   selectEntry$ = new Subject<string | null>();
+  entryForm = viewChild(EntryFormComponent);
 
   handleFormOutput(entryData: CreateEntry | EditEntry | null) {
     this.selectEntry$.next(null);

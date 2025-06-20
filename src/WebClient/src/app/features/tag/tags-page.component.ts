@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, viewChild } from '@angular/core';
 import { TagService } from './services/tag.service';
 import { FormsModule } from '@angular/forms';
 import { TopBarComponent } from '../../core/layout/top-bar/top-bar.component';
@@ -31,12 +31,6 @@ import { PaginationComponent } from '../../shared/components/pagination.componen
         </button>
       </div>
 
-      <app-modal [isOpen]="!!this.selectedTag()" (close)="tagForm.onSave()">
-        <app-tag-form #tagForm
-                      [tagId]="this.selectedTag() === 'new' ? '' : this.selectedTag()"
-                      (save)="handleFormOutput($event)" />
-      </app-modal>
-
       <app-data-table
         [columns]="
         [
@@ -68,6 +62,14 @@ import { PaginationComponent } from '../../shared/components/pagination.componen
         {{ tagDate | date }}
       </ng-template>
     </div>
+
+    <app-modal [isOpen]="!!this.selectedTag()" (close)="tagForm()?.onSave()">
+      <ng-template>
+        <app-tag-form #tagFormRef
+                      [tagId]="this.selectedTag() === 'new' ? '' : this.selectedTag()"
+                      (save)="handleFormOutput($event)" />
+      </ng-template>
+    </app-modal>
   `,
 })
 export class TagsPageComponent {
@@ -76,6 +78,7 @@ export class TagsPageComponent {
   tagService = inject(TagService);
 
   selectTag$ = new Subject<string | null>();
+  tagForm = viewChild(TagFormComponent);
 
   private queryParams = toSignal(this.route.queryParams);
   selectedTag = computed(() => this.queryParams()?.['selected'] as string)
