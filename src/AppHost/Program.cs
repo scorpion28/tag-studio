@@ -17,11 +17,17 @@ var storage = builder.AddAzureStorage("storage")
 
 var blob = storage.AddBlobs("blob");
 
+var rabbit = builder.AddRabbitMQ("messaging")
+    .WithLifetime(ContainerLifetime.Persistent)
+    .WithDataVolume();
+
 var webApi = builder.AddProject<WebApi>("webapi")
     .WithReference(db)
     .WaitFor(db)
     .WithReference(blob)
-    .WaitFor(blob);
+    .WaitFor(blob)
+    .WithReference(rabbit)
+    .WaitFor(rabbit);
 
 builder.AddNpmApp("webapp", "../WebClient")
     .WithReference(webApi)

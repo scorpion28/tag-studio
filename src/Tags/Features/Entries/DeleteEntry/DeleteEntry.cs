@@ -1,6 +1,8 @@
 ﻿using Ardalis.GuardClauses;
 using FastEndpoints;
+using MassTransit;
 using Microsoft.Extensions.Logging;
+using TagStudio.Shared.Contracts;
 using TagStudio.Shared.User;
 using TagStudio.Tags.Data;
 
@@ -9,6 +11,7 @@ namespace TagStudio.Tags.Features.Entries;
 public class DeleteEntryEndpoint(
     TagsDbContext dbContext,
     CurrentUser user,
+    IPublishEndpoint publishEndpoint,
     ILogger<DeleteEntryEndpoint> logger) : EndpointWithoutRequest
 {
     public override void Configure()
@@ -31,6 +34,8 @@ public class DeleteEntryEndpoint(
         await dbContext.SaveChangesAsync(ct);
 
         logger.LogInformation("User {UserId} deleted entry {EntryId}", user.Id, entity.Id);
+
+        await publishEndpoint.Publish(new EntryDeleted { Id = entity.Id, ImageFileName = entity.ImageFileName });
 
         await SendNoContentAsync(ct);
     }
