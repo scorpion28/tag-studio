@@ -22,6 +22,7 @@
 <app-tag-picker
   [selectedTags]="parentTags()"
   [isVisible]="tagPickerVisible()"
+  [excludedTagId]="tagId()"
   (tagAdded)="onParentTagAdded($event)"
   (tagRemoved)="onParentTagRemoved($event)"
   (close)="tagPickerVisible.set(false)" />

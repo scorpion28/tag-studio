@@ -55,6 +55,7 @@ import { ModalComponent } from '../../../shared/components/modal.component';
 export class TagPickerComponent {
   selectedTags = input.required<TagBrief[]>();
   isVisible = input.required<boolean>();
+  excludedTagId = input<string>();
   close = output();
 
   tagAdded = output<TagBrief>();
@@ -70,13 +71,16 @@ export class TagPickerComponent {
   readonly availableTags = computed(() => {
     const all = this.allTags();
     const selected = this.selectedTags();
+    const excludedId = this.excludedTagId();
 
     if (!all || all.length === 0) {
       return [];
     }
 
     return all.filter(
-      (tag) => !selected.some((selectedTag) => selectedTag.id === tag.id),
+      (tag) =>
+        !selected.some((selectedTag) => selectedTag.id === tag.id) &&
+        tag.id !== excludedId,
     );
   });
 
