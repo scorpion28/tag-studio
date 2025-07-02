@@ -1,5 +1,6 @@
 ﻿import { Component, input } from '@angular/core';
 import { Entry } from '../models/entry.model';
+import { TagListComponent } from '../../tag/tag-list.component';
 
 @Component({
   selector: 'app-entry-card',
@@ -12,10 +13,17 @@ import { Entry } from '../models/entry.model';
       }
 
       <div class="card-content">
-        <p class="text-alpha-81">{{ entry().name }}</p>
+        <p class="text-alpha-81 font-medium">{{ entry().name }}</p>
+
+        <div class="mt-2 overflow-hidden h-7">
+          <app-tag-list [tags]="entry().tags" [wrap]="true" />
+        </div>
       </div>
     </div>
   `,
+  imports: [
+    TagListComponent
+  ],
   styles: `
     .entry-card {
       flex: 1 1 300px;
