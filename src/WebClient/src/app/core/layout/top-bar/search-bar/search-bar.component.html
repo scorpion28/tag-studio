@@ -1,0 +1,74 @@
+<div class="relative w-full max-w-sm mx-auto">
+  <div class="flex items-center">
+    <div class="relative w-full">
+      <i class="fa-solid fa-tag fill-gray-300 text-gray-400 absolute inset-y-0 start-0 m-3"></i>
+      <input type="text" id="simple-search" #searchInput
+             [formControl]="searchControl"
+             (focus)="onFocus()"
+             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+             placeholder="Search Tags, Entries..." required/>
+      
+      <div *ngIf="isLoading()" class="absolute inset-y-0 end-0 flex items-center pe-3 pointer-events-none">
+        <svg class="animate-spin h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search Results Dropdown -->
+  <div *ngIf="showResults()" 
+       class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg dark:bg-gray-800 dark:border-gray-700 max-h-96 overflow-y-auto">
+    
+    <!-- Recent History -->
+    <div *ngIf="!searchControl.value && searchHistory().length > 0">
+      <h4 class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase dark:text-gray-400 border-b border-gray-100 dark:border-gray-700">Recent Searches</h4>
+      <ul>
+        <li *ngFor="let historyItem of searchHistory()" 
+            (click)="selectHistory(historyItem)"
+            class="px-4 py-2 flex items-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+          <i class="fa-solid fa-clock-rotate-left text-gray-400 me-3"></i>
+          <span class="text-sm text-gray-700 dark:text-gray-200">{{ historyItem }}</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- No Results -->
+    <div *ngIf="searchControl.value && searchResults().length === 0 && !isLoading()" class="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
+      No results found for "{{ searchControl.value }}"
+    </div>
+
+    <!-- Combined List Results -->
+    <div *ngIf="searchResults().length > 0">
+      <h4 class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase dark:text-gray-400 border-b border-gray-100 dark:border-gray-700">Results</h4>
+      <ul>
+        <li *ngFor="let result of searchResults()" 
+            (click)="selectResult(result)"
+            class="px-4 py-3 flex items-start cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-50 dark:border-gray-700 last:border-0 transition-colors">
+          
+          <div class="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded bg-gray-100 dark:bg-gray-600 me-3">
+            <i *ngIf="result.type === 'Tag'" class="fa-solid fa-tag text-blue-500"></i>
+            <img *ngIf="result.type === 'Entry' && result.thumbnailUrl" 
+                 [src]="result.thumbnailUrl" 
+                 class="w-full h-full object-cover rounded" 
+                 alt="Entry Image">
+            <i *ngIf="result.type === 'Entry' && !result.thumbnailUrl" class="fa-solid fa-file text-green-500"></i>
+          </div>
+          
+          <div class="flex-grow">
+            <div class="flex justify-between items-center">
+              <span class="text-sm font-medium text-gray-900 dark:text-white">{{ result.title }}</span>
+              <span class="text-xs px-2 py-0.5 rounded border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400">
+                {{ result.type }}
+              </span>
+            </div>
+            <p *ngIf="result.description" class="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-1">
+              {{ result.description }}
+            </p>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>

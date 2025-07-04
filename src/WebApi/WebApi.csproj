@@ -27,6 +27,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Identity\Identity.csproj" />
+        <ProjectReference Include="..\Search\Search.csproj" />
         <ProjectReference Include="..\ServiceDefaults\ServiceDefaults.csproj"/>
         <ProjectReference Include="..\Tags\Tags.csproj" />
     </ItemGroup>

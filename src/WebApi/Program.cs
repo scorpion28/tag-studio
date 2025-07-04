@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 using FastEndpoints;
 using MassTransit;
 using Scalar.AspNetCore;
-using TagStudio.Tags.Consumers;
+using TagStudio.Search.Consumers;
 using TagStudio.WebApi.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,11 +14,13 @@ builder.AddWebServices();
 
 builder.AddAppIdentityServices();
 builder.AddTagsServices();
-
+builder.AddSearchServices();
+    
 builder.Services.AddMassTransit(x =>
 {
     x.SetKebabCaseEndpointNameFormatter();
-    x.AddConsumer<EntryDeletedConsumer>();
+    x.AddConsumers(typeof(EntryCreatedConsumer).Assembly);
+    x.AddConsumer<TagStudio.Tags.Consumers.EntryDeletedConsumer>();
     
     x.UsingRabbitMq((context, cfg) =>
     {
