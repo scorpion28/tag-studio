@@ -1,17 +1,23 @@
 ﻿using FastEndpoints;
+using MassTransit;
 using Microsoft.Extensions.Logging;
+using TagStudio.Shared.Contracts;
 using TagStudio.Tags.Common.Models;
 using TagStudio.Tags.Data;
 
 namespace TagStudio.Tags.Features.Entries;
 
-public class CreateEntryEndpoint(TagsDbContext dbContext, ILogger<CreateEntryEndpoint> logger)
+public class CreateEntryEndpoint(
+    TagsDbContext dbContext,
+    IPublishEndpoint publishEndpoint,
+    ILogger<CreateEntryEndpoint> logger
+)
     : Endpoint<CreateEntryRequest, EntryDetailedDto, CreateEntryMapper>
 {
     public override void Configure()
     {
         Post("/entries");
-        
+
         Summary(s => s.Summary = "Create Entry");
     }
 
@@ -23,6 +29,8 @@ public class CreateEntryEndpoint(TagsDbContext dbContext, ILogger<CreateEntryEnd
         await dbContext.SaveChangesAsync(ct);
 
         logger.LogInformation("User {UserId} created entry {EntryId}", req.UserId, entity.Id);
+
+        await publishEndpoint.Publish(new EntryCreated(entity.Id, entity.OwnerId, entity.Name, entity.Description ?? ""));
         
         return Map.FromEntity(entity);
     }

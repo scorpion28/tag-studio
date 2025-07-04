@@ -21,13 +21,19 @@ var rabbit = builder.AddRabbitMQ("messaging")
     .WithLifetime(ContainerLifetime.Persistent)
     .WithDataVolume();
 
+var elasticSearch = builder.AddElasticsearch("elasticsearch")
+    .WithLifetime(ContainerLifetime.Persistent)
+    .WithDataVolume();
+
 var webApi = builder.AddProject<WebApi>("webapi")
     .WithReference(db)
     .WaitFor(db)
     .WithReference(blob)
     .WaitFor(blob)
     .WithReference(rabbit)
-    .WaitFor(rabbit);
+    .WaitFor(rabbit)
+    .WithReference(elasticSearch)
+    .WaitFor(elasticSearch);
 
 builder.AddNpmApp("webapp", "../WebClient")
     .WithReference(webApi)

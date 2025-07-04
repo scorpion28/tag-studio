@@ -13,6 +13,7 @@
         <PackageReference Include="Aspire.Hosting.NodeJs" />
         <PackageReference Include="Aspire.Hosting.RabbitMQ" />
         <PackageReference Include="Aspire.Hosting.SqlServer"/>
+        <PackageReference Include="Elastic.Aspire.Hosting.Elasticsearch" />
     </ItemGroup>
 
     <ItemGroup>

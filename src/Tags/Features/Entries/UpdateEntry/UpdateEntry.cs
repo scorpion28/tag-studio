@@ -1,13 +1,17 @@
 using Ardalis.GuardClauses;
 using FastEndpoints;
+using MassTransit;
 using Microsoft.Extensions.Logging;
+using TagStudio.Shared.Contracts;
 using TagStudio.Shared.User;
 using TagStudio.Tags.Data;
 
 namespace TagStudio.Tags.Features.Entries;
 
 public class UpdateEntryEndpoint(
-    TagsDbContext dbContext, CurrentUser user,
+    TagsDbContext dbContext,
+    IPublishEndpoint publishEndpoint,
+    CurrentUser user,
     ILogger<UpdateEntryEndpoint> logger) : Endpoint<UpdateEntryRequest>
 {
     public override void Configure()
@@ -31,6 +35,8 @@ public class UpdateEntryEndpoint(
 
         logger.LogInformation("User {UserId} updated entry {EntryId}", user.Id, entry.Id);
 
+        await publishEndpoint.Publish(new EntryUpdated(entry.Id, entry.OwnerId, entry.Name, entry.Description ?? ""));
+        
         await SendNoContentAsync(ct);
     }
 }

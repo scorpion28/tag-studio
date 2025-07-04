@@ -1,0 +1,10 @@
+﻿namespace TagStudio.Search.Models;
+
+public class EntrySearchDocument
+{
+    public required Guid Id { get; set; }
+    public required Guid UserId { get; set; }
+
+    public required string Title { get; set; }
+    public string? Description { get; set; }
+}

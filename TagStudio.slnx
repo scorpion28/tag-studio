@@ -5,6 +5,7 @@
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/AppHost/AppHost.csproj" />
+    <Project Path="src/Search/Search.csproj" />
     <Project Path="src/ServiceDefaults/ServiceDefaults.csproj" />
     <Project Path="src/WebApi/WebApi.csproj" />
     <Project Path="src\Identity\Identity.csproj" />
@@ -12,7 +13,7 @@
     <Project Path="src\Tags\Tags.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests\Tags.UnitTests\Tags.UnitTests.csproj" Type="Classic C#" />
+    <Project Path="tests\Tags.UnitTests\Tags.UnitTests.csproj" Type="C#" />
     <Project Path="tests\WebApi.FunctionalTests\WebApi.FunctionalTests.csproj" />
     <Project Path="tests\WebApi.Tests\WebApi.Tests.csproj" />
   </Folder>
